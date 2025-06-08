@@ -9,7 +9,7 @@ const MyAppointment = () => {
       <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">My Appointments</h2>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {doctors.slice(0, 2).map((item, index) => (
+        {doctors.slice(0, 4).map((item, index) => (
           <div key={index} className="bg-white rounded-xl shadow-lg p-6 flex gap-6 items-start hover:shadow-xl transition-all">
             {/* Doctor Image */}
             <div className="w-24 h-24 shrink-0">
