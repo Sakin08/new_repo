@@ -59,7 +59,7 @@ const Appointment = () => {
   const handleBookAppointment = async () => {
     if (!token) {
       toast.error("Please login to book an appointment");
-      return;
+      return navigate('/login');
     }
     if (!slotTime) {
       toast.error("Please select a time slot");
