@@ -1,11 +1,19 @@
 import React, { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const MyProfile = () => {
-  
-  const { userData, setUserData } = useContext(AppContext);
+  const {
+    userData,
+    setUserData,
+    backendUrl,
+    token,
+    loadUserProfileData
+  } = useContext(AppContext);
 
-  const [isEdit, setIsEdit] = useState(false); // Start in view mode by default
+  const [isEdit, setIsEdit] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,16 +34,60 @@ const MyProfile = () => {
     }
   };
 
-  return userData &&(
+  const handleImageChange = (e) => {
+    setImageFile(e.target.files[0]);
+  };
+
+  const handleSave = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('userId', userData._id);
+      formData.append('name', userData.name);
+      formData.append('phone', userData.phone);
+      formData.append('dob', userData.dob);
+      formData.append('gender', userData.gender);
+      formData.append('address', JSON.stringify(userData.address));
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      const res = await axios.post(`${backendUrl}/api/user/update-profile`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (res.data.success) {
+        toast.success('Profile updated!');
+        loadUserProfileData();
+        setIsEdit(false);
+      } else {
+        toast.error(res.data.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Error updating profile');
+    }
+  };
+
+  return userData && (
     <div className="max-w-4xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-indigo-100 shadow-xl rounded-2xl mt-12 space-y-8">
       <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
         <div className="relative">
           <img
-            src={userData.image}
+            src={imageFile ? URL.createObjectURL(imageFile) : userData.image}
             alt="Profile"
             className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
           />
-          {/* You could add an edit icon here for image upload */}
+          {isEdit && (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-2 block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer"
+            />
+          )}
         </div>
         <div className="flex-1 text-center md:text-left">
           {isEdit ? (
@@ -55,9 +107,7 @@ const MyProfile = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8 border-gray-200">
         <div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-            Contact Information
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Contact Information</h2>
           <div className="space-y-4">
             <div>
               <p className="text-gray-500 text-sm">Phone</p>
@@ -81,7 +131,7 @@ const MyProfile = () => {
                     type="text"
                     name="address.line1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    value={userData.address.line1}
+                    value={userData.address?.line1 || ''}
                     onChange={handleChange}
                     placeholder="Address Line 1"
                   />
@@ -89,16 +139,16 @@ const MyProfile = () => {
                     type="text"
                     name="address.line2"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    value={userData.address.line2}
+                    value={userData.address?.line2 || ''}
                     onChange={handleChange}
                     placeholder="Address Line 2"
                   />
                 </div>
               ) : (
                 <p className="font-medium text-gray-800">
-                  {userData.address.line1}
+                  {userData.address?.line1}
                   <br />
-                  {userData.address.line2}
+                  {userData.address?.line2}
                 </p>
               )}
             </div>
@@ -106,9 +156,7 @@ const MyProfile = () => {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-            Basic Information
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
               <p className="text-gray-500 text-sm">Gender</p>
@@ -119,9 +167,9 @@ const MyProfile = () => {
                   value={userData.gender}
                   onChange={handleChange}
                 >
+                  <option value="">Select</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
-                  
                 </select>
               ) : (
                 <p className="font-medium text-gray-800">{userData.gender}</p>
@@ -147,16 +195,24 @@ const MyProfile = () => {
 
       <div className="text-center pt-6">
         {isEdit ? (
-          <button
-            onClick={() => setIsEdit(false)}
-            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 transform hover:scale-105"
-          >
-            Save Information
-          </button>
+          <div className="space-x-4 inline-flex">
+            <button
+              onClick={handleSave}
+              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all"
+            >
+              Save Information
+            </button>
+            <button
+              onClick={() => setIsEdit(false)}
+              className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-full shadow hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => setIsEdit(true)}
-            className="px-8 py-3 bg-gray-800 text-white font-semibold rounded-full shadow-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2 transition-all duration-300 transform hover:scale-105"
+            className="px-8 py-3 bg-gray-800 text-white font-semibold rounded-full shadow-lg hover:bg-gray-900 transition-all"
           >
             Edit Profile
           </button>

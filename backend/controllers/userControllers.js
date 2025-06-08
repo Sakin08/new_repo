@@ -84,38 +84,36 @@ const getProfile = async (req, res) => {
 // API to update user profile
 const updateProfile = async (req, res) => {
   try {
-    const { userId, name, phone, address, dob, gender } = req.body;
+    const { userId, name, phone, dob, gender, address } = req.body;
     const imageFile = req.file;
-
-    // Log the received values
-    console.log("Received:", { name, phone, dob, gender, userId });
 
     if (!name || !phone || !dob || !gender) {
       return res.json({ success: false, message: "Data Missing" });
     }
 
-    await userModel.findByIdAndUpdate(userId, {
+    const updateData = {
       name,
       phone,
-      address: JSON.parse(address),
       dob,
       gender,
-    });
+      address: JSON.parse(address),
+    };
 
     if (imageFile) {
       const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
         resource_type: 'image',
       });
-      const imageUrl = imageUpload.secure_url;
-      await userModel.findByIdAndUpdate(userId, { image: imageUrl });
+      updateData.image = imageUpload.secure_url;
     }
 
+    await userModel.findByIdAndUpdate(userId, updateData);
     res.json({ success: true, message: "Profile Updated" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
+
 
 
 export { registerUser, loginUser, getProfile, updateProfile };
