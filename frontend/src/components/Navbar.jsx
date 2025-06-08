@@ -6,8 +6,7 @@ import { AppContext } from "../context/AppContext";
 const Navbar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false); // Mobile menu
-  const { token, setToken } = useContext(AppContext);
-
+  const { token, userData, setToken } = useContext(AppContext);
   const [dropdownOpen, setDropdownOpen] = useState(false); // Profile dropdown
   const dropdownRef = useRef(null);
 
@@ -69,7 +68,7 @@ const Navbar = () => {
           ) : (
             <div>
               <img
-                src={assets.profile || "https://i.pravatar.cc/32"}
+                src={userData?.image || "https://i.pravatar.cc/32"}
                 alt="Profile"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="w-10 h-10 rounded-full cursor-pointer border border-gray-300"
