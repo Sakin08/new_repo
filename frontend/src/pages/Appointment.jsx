@@ -1,15 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
 import RelatedDoctors from "../components/RelatedDoctors";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymbol } = useContext(AppContext);
-
+  const { doctors, currencySymbol, token, backendUrl } = useContext(AppContext);
+  const navigate = useNavigate();
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
@@ -23,17 +24,13 @@ const Appointment = () => {
   const getAvailableSlots = async () => {
     const today = new Date();
     const allSlots = [];
-
     for (let i = 0; i < 7; i++) {
       let currentDate = new Date(today);
       currentDate.setDate(today.getDate() + i);
-
       let endTime = new Date(today);
       endTime.setDate(today.getDate() + i);
-      endTime.setHours(21, 0, 0, 0); // 9:00 PM
-
+      endTime.setHours(21, 0, 0, 0);
       if (i === 0) {
-        // If it's today, start from the next available time
         const now = new Date();
         currentDate.setHours(Math.max(now.getHours() + 1, 10));
         currentDate.setMinutes(now.getMinutes() > 30 ? 30 : 0);
@@ -41,28 +38,53 @@ const Appointment = () => {
         currentDate.setHours(10);
         currentDate.setMinutes(0);
       }
-
       const timeSlots = [];
-
       while (currentDate < endTime) {
         const formattedTime = currentDate.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
         });
-
         timeSlots.push({
           datetime: new Date(currentDate),
           time: formattedTime,
         });
-
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
-
       allSlots.push(timeSlots);
     }
+    setDocSlots(allSlots);
+  };
 
-    setDocSlots(allSlots); // Set once after collecting all time slots
+  const handleBookAppointment = async () => {
+    if (!token) {
+      toast.error("Please login to book an appointment");
+      return;
+    }
+    if (!slotTime) {
+      toast.error("Please select a time slot");
+      return;
+    }
+    try {
+      const selectedSlot = docSlots[slotIndex][0].datetime;
+      const slotDate = selectedSlot.toLocaleDateString("en-CA"); // YYYY-MM-DD
+      const response = await axios.post(
+        `${backendUrl}/api/user/book-appointment`,
+        { docId, slotDate, slotTime: slotTime.toLowerCase() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setSlotTime(""); // Reset selected time
+        await getAvailableSlots(); // Refresh slots
+        navigate("/my-appointment"); // Navigate to my-appointment
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to book appointment");
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -81,7 +103,6 @@ const Appointment = () => {
     docInfo && (
       <div className="max-w-3xl mx-auto mt-8 px-4">
         <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row hover:shadow-lg transition-shadow duration-300">
-          {/* Image Section */}
           <div className="md:w-1/3 bg-gradient-to-br from-blue-50 to-blue-100 p-5 flex items-center justify-center">
             <img
               src={docInfo.image}
@@ -89,14 +110,9 @@ const Appointment = () => {
               className="w-full h-auto rounded-lg shadow-md object-cover"
             />
           </div>
-
-          {/* Info Section */}
           <div className="md:w-2/3 p-5 flex flex-col justify-between space-y-4 text-gray-800">
-            {/* Name + Verified */}
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-900">
-                {docInfo.name}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900">{docInfo.name}</h2>
               <img
                 src={assets.verified_icon}
                 alt="Verified"
@@ -104,8 +120,6 @@ const Appointment = () => {
                 title="Verified Doctor"
               />
             </div>
-
-            {/* Degree + Specialty + Experience */}
             <div className="text-sm text-gray-700">
               <p className="font-semibold">
                 {docInfo.degree} • {docInfo.speciality}
@@ -114,8 +128,6 @@ const Appointment = () => {
                 {docInfo.experience} experience
               </p>
             </div>
-
-            {/* About Section */}
             <section>
               <div className="flex items-center gap-1 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">About</h3>
@@ -130,8 +142,6 @@ const Appointment = () => {
                 {docInfo.about}
               </p>
             </section>
-
-            {/* Appointment Fee */}
             <div className="mt-3 text-sm font-semibold text-gray-900">
               Appointment fee:{" "}
               <span className="text-blue-600">
@@ -141,13 +151,10 @@ const Appointment = () => {
             </div>
           </div>
         </div>
-
-        {/* ---------- Booking slots ---------- */}
         <div className="mt-8 font-semibold text-gray-800 max-w-xl mx-auto">
           <p className="text-2xl font-bold mb-6 text-center tracking-wide">
             Booking slots
           </p>
-
           <div className="flex space-x-4 overflow-x-auto no-scrollbar px-4 py-2">
             {docSlots.length > 0 &&
               docSlots.map((item, index) => (
@@ -155,13 +162,14 @@ const Appointment = () => {
                   key={index}
                   onClick={() => setSlotIndex(index)}
                   className={`
-            flex flex-col items-center justify-center min-w-[72px] cursor-pointer rounded-xl 
-            border transition-all duration-300 select-none
-            ${slotIndex === index
-                      ? "bg-blue-600 text-white shadow-lg scale-110"
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-blue-100 hover:text-blue-600"
+                    flex flex-col items-center justify-center min-w-[72px] cursor-pointer rounded-xl 
+                    border transition-all duration-300 select-none
+                    ${
+                      slotIndex === index
+                        ? "bg-blue-600 text-white shadow-lg scale-110"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-blue-100 hover:text-blue-600"
                     }
-          `}
+                  `}
                   style={{ padding: "12px 16px" }}
                 >
                   <p className="text-sm font-semibold tracking-wide">
@@ -173,11 +181,6 @@ const Appointment = () => {
                 </div>
               ))}
           </div>
-
-
-          {/* time section */}
-
-
           <div className="mt-10 max-w-xl mx-auto px-4">
             <div className="flex flex-wrap gap-3 justify-center mb-6">
               {docSlots.length > 0 &&
@@ -186,51 +189,47 @@ const Appointment = () => {
                     key={index}
                     htmlFor={`timeslot-${index}`}
                     className="cursor-pointer min-w-[80px] text-sm font-semibold shadow-sm whitespace-nowrap
-            border border-blue-300 rounded-xl
-            flex justify-center items-center
-            transition duration-300 ease-in-out
-            hover:bg-blue-100 hover:text-blue-900"
+                      border border-blue-300 rounded-xl
+                      flex justify-center items-center
+                      transition duration-300 ease-in-out
+                      hover:bg-blue-100 hover:text-blue-900"
                   >
                     <input
                       type="radio"
                       id={`timeslot-${index}`}
                       name="timeslot"
                       className="hidden peer"
+                      onChange={() => setSlotTime(item.time)}
                     />
                     <span
-                      className="block w-full px-4 py-2 rounded-xl
-              text-blue-700
-              peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-300
-              transition-colors duration-300"
+                      className={`
+                        block w-full px-4 py-2 rounded-xl
+                        text-blue-700
+                        ${
+                          slotTime === item.time
+                            ? "bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300"
+                            : "peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-300"
+                        }
+                        transition-colors duration-300
+                      `}
                     >
                       {item.time.toLowerCase()}
                     </span>
                   </label>
                 ))}
             </div>
-
-            {/* button section */}
-
             <div className="flex justify-center">
               <button
+                onClick={handleBookAppointment}
                 className="bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-bold
-      shadow-md hover:bg-blue-700 active:bg-blue-800
-      transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  shadow-md hover:bg-blue-700 active:bg-blue-800
+                  transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 Book an Appointment
               </button>
             </div>
           </div>
-
-
-
-          {/* listing releted doctors */}
-
-          <RelatedDoctors docId={docId} speciality={docInfo.speciality}/>
-
-
-
-
+          <RelatedDoctors docId={docId} speciality={docInfo.speciality} />
         </div>
       </div>
     )
