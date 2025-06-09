@@ -96,29 +96,29 @@ const MyAppointment = () => {
                     <p>{item.docData.address.line2}</p>
                   </div>
 
-                 <div className="mt-4 bg-gray-50 text-gray-700 font-semibold px-4 py-2 rounded-lg border border-gray-200 inline-flex items-center text-sm tracking-wide transform hover:bg-gray-100 transition-colors duration-200 ease-in-out cursor-pointer">
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-  <span>{new Date(item.slotDate).toLocaleDateString("en-GB", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-  <span className="mx-2 text-gray-400">|</span>
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-  <span>{item.slotTime}</span>
-</div>
+                  <div className="mt-4 bg-gray-50 text-gray-700 font-semibold px-4 py-2 rounded-lg border border-gray-200 inline-flex items-center text-sm tracking-wide transform hover:bg-gray-100 transition-colors duration-200 ease-in-out">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{new Date(item.slotDate).toLocaleDateString("en-GB", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    <span className="mx-2 text-gray-400">|</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{item.slotTime}</span>
+                  </div>
 
-                  
+
                 </div>
 
                 {/* Buttons */}
                 <div className="flex flex-col gap-2">
-                  <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300">
+                  <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer">
                     Pay Online
                   </button>
                   <button
                     onClick={() => handleCancelAppointment(item._id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300"
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
                   >
                     Cancel
                   </button>

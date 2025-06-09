@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const Appointment = () => {
+  
   const { docId } = useParams();
   const { doctors, currencySymbol, token, backendUrl } = useContext(AppContext);
   const navigate = useNavigate();
@@ -15,12 +16,13 @@ const Appointment = () => {
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
-
+  
   const fetchDocInfo = () => {
     const docInfo = doctors.find((doc) => doc._id === docId);
     setDocInfo(docInfo);
   };
 
+  
   const getAvailableSlots = async () => {
     const today = new Date();
     const allSlots = [];
@@ -253,6 +255,8 @@ const Appointment = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleBookAppointment}
+                
+
                 className="bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-bold
                   shadow-md hover:bg-blue-700 active:bg-blue-800
                   transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400"

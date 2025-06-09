@@ -80,7 +80,7 @@ const Navbar = () => {
                       navigate("/my-profile");
                       setDropdownOpen(false);
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     My Profile
                   </button>
@@ -89,14 +89,14 @@ const Navbar = () => {
                       navigate("/my-appointment");
                       setDropdownOpen(false);
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     My Appointment
                   </button>
                   <hr className="my-1" />
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 cursor-pointer"
                   >
                     Logout
                   </button>

@@ -78,7 +78,7 @@ const MyProfile = () => {
           <img
             src={imageFile ? URL.createObjectURL(imageFile) : userData.image}
             alt="Profile"
-            className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+            className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover cursor-pointer "
           />
           {isEdit && (
             <input
@@ -90,7 +90,7 @@ const MyProfile = () => {
           )}
         </div>
         <div className="flex-1 text-center md:text-left">
-          {isEdit ? (
+          {isEdit ? (            
             <input
               type="text"
               name="name"
@@ -135,6 +135,7 @@ const MyProfile = () => {
                     onChange={handleChange}
                     placeholder="Address Line 1"
                   />
+
                   <input
                     type="text"
                     name="address.line2"
@@ -198,13 +199,13 @@ const MyProfile = () => {
           <div className="space-x-4 inline-flex">
             <button
               onClick={handleSave}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all"
+              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all cursor-pointer"
             >
               Save Information
             </button>
             <button
               onClick={() => setIsEdit(false)}
-              className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-full shadow hover:bg-gray-400"
+              className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-full shadow hover:bg-gray-400 cursor-pointer"
             >
               Cancel
             </button>
@@ -212,7 +213,7 @@ const MyProfile = () => {
         ) : (
           <button
             onClick={() => setIsEdit(true)}
-            className="px-8 py-3 bg-gray-800 text-white font-semibold rounded-full shadow-lg hover:bg-gray-900 transition-all"
+            className="px-8 py-3 bg-gray-800 text-white font-semibold rounded-full shadow-lg hover:bg-gray-900 transition-all cursor-pointer"
           >
             Edit Profile
           </button>
