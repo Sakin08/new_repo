@@ -30,6 +30,31 @@ const MyAppointment = () => {
     }
   };
 
+  const handleCancelAppointment = async (appointmentId) => {
+    // Add confirmation dialog
+    const confirmCancel = window.confirm("Are you sure you want to cancel this appointment?");
+    if (!confirmCancel) {
+      return; // User clicked Cancel in the dialog
+    }
+
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/cancel-appointment`,
+        { appointmentId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        await getUserAppointments(); // Refresh the appointment list
+      } else {
+        toast.error(data.message || "Failed to cancel appointment");
+      }
+    } catch (error) {
+      console.error("Error canceling appointment:", error);
+      toast.error(error.response?.data?.message || "Failed to cancel appointment");
+    }
+  };
+
   useEffect(() => {
     if (token) {
       getUserAppointments();
@@ -78,7 +103,10 @@ const MyAppointment = () => {
                   <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-full text-sm">
                     Pay Online
                   </button>
-                  <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full text-sm">
+                  <button
+                    onClick={() => handleCancelAppointment(item._id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full text-sm"
+                  >
                     Cancel
                   </button>
                 </div>

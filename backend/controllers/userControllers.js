@@ -121,15 +121,18 @@ const bookAppointment = async (req, res) => {
 
     let slots_booked = docData.slots_booked || {};
 
+    // Ensure slots_booked[slotDate] is an array, initialize if undefined or not an array
     if (!Array.isArray(slots_booked[slotDate])) {
       slots_booked[slotDate] = [];
     }
 
+    // Check if the slot is already booked
     if (slots_booked[slotDate].includes(slotTime)) {
       return res.json({ success: false, message: "Slot is not available" });
-    } else {
-      slots_booked[slotDate].push(slotTime);
     }
+
+    // Add the new slot
+    slots_booked[slotDate].push(slotTime);
 
     const userData = await userModel.findById(userId).select("-password");
     if (!userData) {
@@ -147,13 +150,14 @@ const bookAppointment = async (req, res) => {
       amount: docData.fees,
       slotDate,
       slotTime,
-      date: new Date(), // Use current date for booking
+      date: new Date(),
     };
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
-    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+    // Update doctor's slots_booked
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked }, { new: true });
 
     res.json({ success: true, message: "Appointment booked successfully" });
   } catch (error) {
@@ -168,13 +172,52 @@ const listAppointment = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ success: false, message: "User ID not found in request" });
     }
-    console.log("Fetching appointments for userId:", userId); // Debug log
-    const appointments = await appointmentModel.find({ userId }).lean(); // Use .lean() for performance
+    console.log("Fetching appointments for userId:", userId);
+    const appointments = await appointmentModel.find({ userId }).lean();
     res.json({ success: true, appointments });
   } catch (error) {
-    console.error("Error in listAppointment:", error); // Log the full error
+    console.error("Error in listAppointment:", error);
     res.status(500).json({ success: false, message: "Failed to fetch appointments: " + error.message });
   }
 };
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment };
+const cancelAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.body;
+    const userId = req.user.id;
+
+    // Find and delete the appointment
+    const appointment = await appointmentModel.findOneAndDelete({
+      _id: appointmentId,
+      userId,
+    });
+    if (!appointment) {
+      return res.json({ success: false, message: "Appointment not found or unauthorized" });
+    }
+
+    // Update doctor's slots_booked to remove the canceled slot
+    const { docId, slotDate, slotTime } = appointment;
+
+    // First, pull the slot from the array
+    await doctorModel.updateOne(
+      { _id: docId },
+      { $pull: { [`slots_booked.${slotDate}`]: slotTime } }
+    );
+
+    // Check if the slotDate array is empty or undefined, and unset it if empty
+    const doctor = await doctorModel.findById(docId);
+    if (doctor.slots_booked && doctor.slots_booked[slotDate]?.length === 0) {
+      await doctorModel.updateOne(
+        { _id: docId },
+        { $unset: { [`slots_booked.${slotDate}`]: "" } }
+      );
+    }
+
+    res.json({ success: true, message: "Appointment canceled successfully" });
+  } catch (error) {
+    console.error("Error canceling appointment:", error);
+    res.json({ success: false, message: "Failed to cancel appointment: " + error.message });
+  }
+};
+
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment };
