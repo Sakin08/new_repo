@@ -32,7 +32,7 @@ const Appointment = () => {
       endTime.setHours(21, 0, 0, 0);
       if (i === 0) {
         const now = new Date();
-        currentDate.setHours(Math.max(now.getHours() + 1, 10));
+        currentDate.setHours(Math.max(now.getHours() + 1, 10)); // Starts at 2:00 PM today (01:31 PM + 1 hour)
         currentDate.setMinutes(now.getMinutes() > 30 ? 30 : 0);
       } else {
         currentDate.setHours(10);
@@ -45,10 +45,23 @@ const Appointment = () => {
           minute: "2-digit",
           hour12: true,
         });
-        timeSlots.push({
-          datetime: new Date(currentDate),
-          time: formattedTime,
-        });
+
+        let day = currentDate.getDate();
+        let month = currentDate.getMonth() + 1;
+        let year = currentDate.getFullYear();
+        const slotDate = `${day}_${month}_${year}`;
+        const slotTimeStr = formattedTime;
+
+        const isSlotBooked =
+          docInfo?.slots_booked?.[slotDate] &&
+          docInfo.slots_booked[slotDate].includes(slotTimeStr);
+        if (!isSlotBooked) {
+          timeSlots.push({
+            datetime: new Date(currentDate),
+            time: formattedTime,
+          });
+        }
+
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
       allSlots.push(timeSlots);
@@ -59,15 +72,22 @@ const Appointment = () => {
   const handleBookAppointment = async () => {
     if (!token) {
       toast.error("Please login to book an appointment");
-      return navigate('/login');
+      return navigate("/login");
     }
     if (!slotTime) {
       toast.error("Please select a time slot");
       return;
     }
     try {
-      const selectedSlot = docSlots[slotIndex][0].datetime;
-      const slotDate = selectedSlot.toLocaleDateString("en-CA"); // YYYY-MM-DD
+      const selectedSlot = docSlots[slotIndex].find((slot) => slot.time === slotTime);
+      if (!selectedSlot) {
+        toast.error("Selected slot is invalid");
+        return;
+      }
+
+      const slotDate = selectedSlot.datetime.toLocaleDateString("en-CA"); // YYYY-MM-DD
+      const bookedDate = `${selectedSlot.datetime.getDate()}_${selectedSlot.datetime.getMonth() + 1}_${selectedSlot.datetime.getFullYear()}`;
+
       const response = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
         { docId, slotDate, slotTime: slotTime.toLowerCase() },
@@ -76,7 +96,19 @@ const Appointment = () => {
       if (response.data.success) {
         toast.success(response.data.message);
         setSlotTime(""); // Reset selected time
-        await getAvailableSlots(); // Refresh slots
+
+        const updatedSlotsBooked = {
+          ...docInfo.slots_booked,
+          [bookedDate]: docInfo.slots_booked[bookedDate]
+            ? [...docInfo.slots_booked[bookedDate], slotTime.toLowerCase()]
+            : [slotTime.toLowerCase()],
+        };
+        setDocInfo((prevDocInfo) => ({
+          ...prevDocInfo,
+          slots_booked: updatedSlotsBooked,
+        }));
+
+        await getAvailableSlots(); // Refresh slots with updated availability
         navigate("/my-appointment"); // Navigate to my-appointment
       } else {
         toast.error(response.data.message);
