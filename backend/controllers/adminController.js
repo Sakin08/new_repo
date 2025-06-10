@@ -293,4 +293,67 @@ const deleteAppointment = async (req, res) => {
     }
 };
 
-export { addDoctor, loginAdmin, allDoctors, appointmentAdmin, cancelAppointmentAdmin, deleteAppointment };
+const getDashboardStats = async (req, res) => {
+    try {
+        // Get total doctors count
+        const totalDoctors = await doctorModel.countDocuments();
+
+        // Get total patients (all registered users)
+        const totalPatients = await userModel.countDocuments();
+
+        // Get total appointments
+        const totalAppointments = await appointmentModel.countDocuments();
+
+        // Get cancelled appointments count
+        const cancelledAppointments = await appointmentModel.countDocuments({ cancelled: true });
+
+        // Get 5 most recent appointments with user and doctor details
+        const recentAppointments = await appointmentModel
+            .find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean();
+
+        // Fetch user data for each appointment
+        const appointmentsWithUserData = await Promise.all(
+            recentAppointments.map(async (appointment) => {
+                const userData = await userModel.findById(appointment.userId)
+                    .select('name image')
+                    .lean();
+                return {
+                    ...appointment,
+                    userData: userData || { name: 'Unknown User' }
+                };
+            })
+        );
+
+        const stats = {
+            totalDoctors,
+            totalPatients,
+            totalAppointments,
+            cancelledAppointments,
+            recentAppointments: appointmentsWithUserData
+        };
+
+        return res.status(200).json({
+            success: true,
+            stats
+        });
+    } catch (error) {
+        console.error('Error in getDashboardStats:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch dashboard statistics"
+        });
+    }
+};
+
+export { 
+    addDoctor,
+    loginAdmin,
+    allDoctors,
+    appointmentAdmin,
+    cancelAppointmentAdmin,
+    deleteAppointment,
+    getDashboardStats
+};

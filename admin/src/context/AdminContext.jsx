@@ -11,6 +11,13 @@ const AdminContextProvider = (props) => {
     const [doctors, setDoctors] = useState([])
     const [appointments, setAppointments] = useState([])
     const [loading, setLoading] = useState(false)
+    const [dashboardStats, setDashboardStats] = useState({
+        totalDoctors: 0,
+        totalPatients: 0,
+        totalAppointments: 0,
+        cancelledAppointments: 0,
+        recentAppointments: []
+    })
 
     const getAllDoctors = async () => {
         try {
@@ -116,6 +123,25 @@ const AdminContextProvider = (props) => {
         }
     }
 
+    const getDashboardStats = async () => {
+        try {
+            setLoading(true);
+            const { data } = await axios.get(
+                `${backendUrl}/api/admin/dashboard-stats`,
+                { headers: { aToken } }
+            );
+            if (data.success) {
+                setDashboardStats(data.stats);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to fetch dashboard statistics');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const value = {
         aToken,
         setAToken,
@@ -127,7 +153,9 @@ const AdminContextProvider = (props) => {
         getAllAppointments,
         cancelAppointment,
         deleteAppointment,
-        loading
+        loading,
+        dashboardStats,
+        getDashboardStats
     };
 
     return (
