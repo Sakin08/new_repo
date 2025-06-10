@@ -20,6 +20,13 @@ const Doctors = () => {
     applyFilter();
   }, [doctors, speciality]);
 
+  const handleDoctorClick = (doctor) => {
+    if (!doctor.available) {
+      return; // Do nothing if doctor is unavailable
+    }
+    navigate(`/appointment/${doctor._id}`);
+  };
+
   const specialities = [
     'General physician',
     'Gynecologist',
@@ -56,9 +63,10 @@ const Doctors = () => {
         {filterDoc.map((item, index) => (
           <div
             key={index}
-            onClick={() => navigate(`/appointment/${item._id}`)}
-            className="bg-white rounded-xl shadow-md p-5 flex flex-col items-center cursor-pointer 
-              hover:shadow-xl hover:scale-[1.03] transition-transform duration-300 ease-in-out"
+            onClick={() => handleDoctorClick(item)}
+            className={`bg-white rounded-xl shadow-md p-5 flex flex-col items-center 
+              ${item.available ? 'cursor-pointer hover:shadow-xl hover:scale-[1.03]' : 'opacity-75'} 
+              transition-transform duration-300 ease-in-out`}
           >
             <img
               src={item.image}
@@ -67,8 +75,13 @@ const Doctors = () => {
             />
             <div className="w-full text-center">
               <div className="mb-2">
-                <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-                  Available
+                <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full
+                  ${item.available 
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {item.available ? 'Available' : 'Not Available'}
                 </span>
               </div>
               <p className="text-xl font-semibold text-blue-900">{item.name}</p>

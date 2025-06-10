@@ -72,7 +72,16 @@ const AppContextProvider = (props) => {
 
 
   useEffect(() => {
+    // Initial fetch
     getDoctorsData();
+
+    // Set up polling every 10 seconds to keep doctor availability up-to-date
+    const interval = setInterval(() => {
+      getDoctorsData();
+    }, 10000);
+
+    // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(()=>{
