@@ -69,7 +69,16 @@ const DeshBoard = () => {
   const { dashboardStats, getDashboardStats, loading } = useContext(AdminContext);
 
   useEffect(() => {
+    // Initial fetch
     getDashboardStats();
+
+    // Set up auto-refresh every 30 seconds
+    const refreshInterval = setInterval(() => {
+      getDashboardStats();
+    }, 30000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const formatDate = (dateString) => {
