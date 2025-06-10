@@ -41,8 +41,11 @@ const appointmentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
+}, {
+    timestamps: true
 });
 
+// Ensure the model is registered only once
 const appointmentModel = mongoose.models.appointment || mongoose.model('appointment', appointmentSchema);
 
 export default appointmentModel;

@@ -4,6 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import jwt from 'jsonwebtoken'
 import { Suspense } from "react";
+import appointmentModel from "../models/appointmentModel.js";
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -118,4 +119,90 @@ const allDoctors=async (req,res)=>{
   }
 }
 
-export { addDoctor, loginAdmin ,allDoctors};
+const appointmentAdmin = async (req, res) => {
+    try {
+        // First verify if the model exists and is properly imported
+        if (!appointmentModel) {
+            console.error('Appointment model is not properly imported');
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error: Model not found"
+            });
+        }
+
+        // Log the model structure
+        console.log('Appointment Model:', appointmentModel.schema.paths);
+
+        const appointments = await appointmentModel.find({})
+            .sort({ date: -1 })
+            .lean()
+            .exec();
+
+        console.log('Found appointments:', appointments);
+
+        return res.status(200).json({
+            success: true,
+            appointments
+        });
+    } catch (error) {
+        console.error('Full error details:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+const cancelAppointmentAdmin = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+
+        if (!appointmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "Appointment ID is required"
+            });
+        }
+
+        const appointment = await appointmentModel.findById(appointmentId);
+        
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        if (appointment.cancelled) {
+            return res.status(400).json({
+                success: false,
+                message: "Appointment is already cancelled"
+            });
+        }
+
+        if (appointment.isCompleted) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot cancel completed appointment"
+            });
+        }
+
+        // Update the appointment
+        appointment.cancelled = true;
+        await appointment.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment cancelled successfully"
+        });
+    } catch (error) {
+        console.error('Error in cancelAppointmentAdmin:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to cancel appointment"
+        });
+    }
+};
+
+export { addDoctor, loginAdmin, allDoctors, appointmentAdmin, cancelAppointmentAdmin };
