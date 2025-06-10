@@ -13,6 +13,7 @@ import DoctorsList from './pages/Admin/DoctorsList';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointment from './pages/Doctor/DoctorAppointment';
+import { DoctorContext } from './context/DoctorContext';
 
 
 
@@ -20,7 +21,8 @@ import DoctorAppointment from './pages/Doctor/DoctorAppointment';
 const App = () => {
   const { aToken } = useContext(AdminContext); // ✅ make sure this matches the correct context
 
-  return aToken ? (
+  const {dToken}=useContext(DoctorContext)
+  return aToken ||dToken  ? (
     <div className='bg-[#F8F9FD]'>
     
       <ToastContainer />
@@ -40,7 +42,7 @@ const App = () => {
           <Route path='/doctor-appointment' element={<DoctorAppointment />} />
           
 
-
+ 
         </Routes>
       </div>
     </div>

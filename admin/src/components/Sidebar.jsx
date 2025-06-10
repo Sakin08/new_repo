@@ -2,9 +2,11 @@ import React, { useContext } from 'react'
 import { AdminContext } from '../context/AdminContext'
 import { NavLink } from 'react-router-dom'
 import { assets } from '../assets/assets'
-
+import { DoctorContext } from '../context/DoctorContext'
+ 
 const Sidebar = () => {
   const { aToken } = useContext(AdminContext)
+  const {dToken}=useContext(DoctorContext)
 
   return (
     <div className="w-64 min-h-screen bg-white shadow-lg p-4">
@@ -57,6 +59,48 @@ const Sidebar = () => {
           >
             <img src={assets.people_icon} alt="Doctors List" className="w-6 h-6" />
             <p>Doctors List</p>
+          </NavLink>
+        </ul>
+      }
+      {
+        dToken &&
+        <ul className="flex flex-col gap-4">
+          <NavLink
+            to={'/doctor-dashboard'}
+            className={({ isActive }) =>
+              `flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                isActive ? 'bg-blue-100 text-blue-600 font-semibold' : 'hover:bg-gray-100 text-gray-700'
+              }`
+            }
+          >
+            <img src={assets.home_icon} alt="Dashboard" className="w-6 h-6" />
+            <p>Dashboard</p>
+          </NavLink>
+
+          <NavLink
+            to={'/doctor-appointments'}
+            className={({ isActive }) =>
+              `flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                isActive ? 'bg-blue-100 text-blue-600 font-semibold' : 'hover:bg-gray-100 text-gray-700'
+              }`
+            }
+          >
+            <img src={assets.appointment_icon} alt="Appointments" className="w-6 h-6" />
+            <p>Appointments</p>
+          </NavLink>
+
+          
+
+          <NavLink
+            to={'/doctor-profile'}
+            className={({ isActive }) =>
+              `flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                isActive ? 'bg-blue-100 text-blue-600 font-semibold' : 'hover:bg-gray-100 text-gray-700'
+              }`
+            }
+          >
+            <img src={assets.people_icon} alt="Doctors List" className="w-6 h-6" />
+            <p>Profile</p>
           </NavLink>
         </ul>
       }
