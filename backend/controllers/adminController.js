@@ -5,6 +5,23 @@ import doctorModel from "../models/doctorModel.js";
 import jwt from 'jsonwebtoken'
 import { Suspense } from "react";
 import appointmentModel from "../models/appointmentModel.js";
+import userModel from "../models/userModel.js";
+
+// Helper function to calculate age from DOB
+const calculateAge = (dob) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    
+    return age;
+};
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -121,7 +138,6 @@ const allDoctors=async (req,res)=>{
 
 const appointmentAdmin = async (req, res) => {
     try {
-        // First verify if the model exists and is properly imported
         if (!appointmentModel) {
             console.error('Appointment model is not properly imported');
             return res.status(500).json({
@@ -130,19 +146,48 @@ const appointmentAdmin = async (req, res) => {
             });
         }
 
-        // Log the model structure
-        console.log('Appointment Model:', appointmentModel.schema.paths);
-
         const appointments = await appointmentModel.find({})
             .sort({ date: -1 })
-            .lean()
-            .exec();
+            .lean();
 
-        console.log('Found appointments:', appointments);
+        const appointmentsWithUserDetails = await Promise.all(
+            appointments.map(async (appointment) => {
+                try {
+                    const user = await userModel.findById(appointment.userId)
+                        .select('name dob phone image')
+                        .lean();
+                    
+                    if (user) {
+                        const age = calculateAge(user.dob);
+                        return {
+                            ...appointment,
+                            userData: {
+                                ...user,
+                                age: age // Add calculated age to userData
+                            }
+                        };
+                    }
+                    
+                    return {
+                        ...appointment,
+                        userData: {
+                            name: 'User not found',
+                            dob: null,
+                            age: null,
+                            phone: null,
+                            image: null
+                        }
+                    };
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                    return appointment;
+                }
+            })
+        );
 
         return res.status(200).json({
             success: true,
-            appointments
+            appointments: appointmentsWithUserDetails
         });
     } catch (error) {
         console.error('Full error details:', error);

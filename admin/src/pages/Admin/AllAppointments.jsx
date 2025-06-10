@@ -9,11 +9,21 @@ const AllAppointments = () => {
     getAllAppointments();
   }, []);
 
+  const formatDOB = (dob) => {
+    if (!dob) return '';
+    const date = new Date(dob);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const handleCancel = async (appointmentId) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {
       const success = await cancelAppointment(appointmentId);
       if (success) {
-        getAllAppointments(); // Refresh the list
+        getAllAppointments();
       }
     }
   };
@@ -34,7 +44,7 @@ const AllAppointments = () => {
         <table className="min-w-full table-auto">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Details</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
@@ -50,14 +60,22 @@ const AllAppointments = () => {
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <img 
-                        className="h-10 w-10 rounded-full" 
-                        src={appointment.docData.image || 'https://via.placeholder.com/40'} 
-                        alt="" 
+                        className="h-10 w-10 rounded-full object-cover" 
+                        src={appointment.userData?.image || 'https://via.placeholder.com/40'} 
+                        alt={appointment.userData?.name || 'Patient'} 
                       />
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">
                         {appointment.userData?.name || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {appointment.userData?.age 
+                          ? `${appointment.userData.age} years (DOB: ${formatDOB(appointment.userData.dob)})` 
+                          : 'Age not specified'}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {appointment.userData?.phone || 'No phone'}
                       </div>
                     </div>
                   </div>
