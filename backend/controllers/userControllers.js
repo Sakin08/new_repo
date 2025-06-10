@@ -178,7 +178,7 @@ const listAppointment = async (req, res) => {
       userId,
       showToUser: true  // Only show appointments that haven't been cancelled by admin
     })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: -1 }) // Sort by creation time, newest first
     .lean();
 
     res.json({ success: true, appointments });

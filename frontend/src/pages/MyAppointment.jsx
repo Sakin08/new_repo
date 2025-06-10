@@ -15,7 +15,7 @@ const MyAppointment = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.success) {
-        setAppointments(data.appointments.reverse());
+        setAppointments(data.appointments);
         console.log("Appointments fetched:", data.appointments);
       } else {
         toast.error(data.message || "Failed to fetch appointments");
@@ -50,6 +50,18 @@ const MyAppointment = () => {
       console.error("Error canceling appointment:", error);
       toast.error(error.response?.data?.message || "Failed to cancel appointment");
     }
+  };
+
+  const formatAppointmentDate = (dateString) => {
+    // Convert from "DD_MM_YYYY" to a proper date
+    const [day, month, year] = dateString.split('_');
+    const date = new Date(year, month - 1, day); // month is 0-based in JS Date
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   useEffect(() => {
@@ -100,7 +112,7 @@ const MyAppointment = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>{new Date(item.slotDate).toLocaleDateString("en-GB", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    <span>{formatAppointmentDate(item.slotDate)}</span>
                     <span className="mx-2 text-gray-400">|</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
