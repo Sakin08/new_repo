@@ -10,6 +10,9 @@ import DeshBoard from './pages/Admin/DeshBoard';
 import AllAppointments from './pages/Admin/AllAppointments';
 import AddDoctor from './pages/Admin/addDoctor';
 import DoctorsList from './pages/Admin/DoctorsList';
+import DoctorProfile from './pages/Doctor/DoctorProfile';
+import DoctorDashboard from './pages/Doctor/DoctorDashboard';
+import DoctorAppointment from './pages/Doctor/DoctorAppointment';
 
 
 
@@ -31,6 +34,10 @@ const App = () => {
           <Route path='/all-appointments' element={<AllAppointments/>}/>
           <Route path='/add-doctor' element={<AddDoctor />} />
           <Route path='/doctor-list' element={<DoctorsList />} />
+
+          <Route path='/doctor-profile' element={<DoctorProfile />} />
+          <Route path='/doctor-dashboard' element={<DoctorDashboard/>} />
+          <Route path='/doctor-appointment' element={<DoctorAppointment />} />
           
 
 
