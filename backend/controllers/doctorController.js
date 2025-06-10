@@ -1,6 +1,7 @@
 import doctorModel from "../models/doctorModel.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+
 const changeAvailablity=async(req,res)=>{
     try{
         const {docId}=req.body
@@ -25,7 +26,6 @@ const doctorList=async(req,res)=>{
 }
 
 //api for doctor login
-
 const loginDoctor=async(req,res)=>{
     try{
         const {email,password}=req.body
@@ -48,4 +48,18 @@ const loginDoctor=async(req,res)=>{
     }
 }
 
-export {changeAvailablity,doctorList,loginDoctor}
+// Get doctor profile
+const getDoctorProfile = async (req, res) => {
+    try {
+        const doctor = await doctorModel.findById(req.doctorId).select('-password');
+        if (!doctor) {
+            return res.json({ success: false, message: 'Doctor not found' });
+        }
+        res.json({ success: true, doctor });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+export {changeAvailablity,doctorList,loginDoctor, getDoctorProfile}
