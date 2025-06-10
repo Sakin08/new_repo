@@ -30,8 +30,10 @@ const AllAppointments = () => {
 
   const handleDelete = async (appointmentId) => {
     if (window.confirm('Are you sure you want to permanently delete this appointment? This action cannot be undone.')) {
-      await deleteAppointment(appointmentId);
-      // No need to call getAllAppointments as we're updating the state directly in deleteAppointment
+      const success = await deleteAppointment(appointmentId);
+      if (success) {
+        getAllAppointments();
+      }
     }
   };
 

@@ -34,7 +34,7 @@ const Appointment = () => {
       endTime.setHours(21, 0, 0, 0);
       if (i === 0) {
         const now = new Date();
-        currentDate.setHours(Math.max(now.getHours() + 1, 10)); // Starts at 2:00 PM today (01:31 PM + 1 hour)
+        currentDate.setHours(Math.max(now.getHours() + 1, 10));
         currentDate.setMinutes(now.getMinutes() > 30 ? 30 : 0);
       } else {
         currentDate.setHours(10);
@@ -55,14 +55,14 @@ const Appointment = () => {
         const slotTimeStr = formattedTime;
 
         const isSlotBooked =
-          docInfo?.slots_booked?.[slotDate] &&
-          docInfo.slots_booked[slotDate].includes(slotTimeStr);
-        if (!isSlotBooked) {
-          timeSlots.push({
-            datetime: new Date(currentDate),
-            time: formattedTime,
-          });
-        }
+          docInfo?.slots_booked?.[slotDate]?.includes(slotTimeStr) || false;
+
+        timeSlots.push({
+          datetime: new Date(currentDate),
+          time: formattedTime,
+          isBooked: isSlotBooked,
+          date: slotDate
+        });
 
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
@@ -80,6 +80,7 @@ const Appointment = () => {
       toast.error("Please select a time slot");
       return;
     }
+
     try {
       const selectedSlot = docSlots[slotIndex].find((slot) => slot.time === slotTime);
       if (!selectedSlot) {
@@ -87,31 +88,40 @@ const Appointment = () => {
         return;
       }
 
-      const slotDate = selectedSlot.datetime.toLocaleDateString("en-CA"); // YYYY-MM-DD
-      const bookedDate = `${selectedSlot.datetime.getDate()}_${selectedSlot.datetime.getMonth() + 1}_${selectedSlot.datetime.getFullYear()}`;
+      if (selectedSlot.isBooked) {
+        toast.error("This slot is already booked. Please select another time slot.");
+        return;
+      }
 
       const response = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
-        { docId, slotDate, slotTime: slotTime.toLowerCase() },
+        { 
+          docId, 
+          slotDate: selectedSlot.date, 
+          slotTime: slotTime.toLowerCase() 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (response.data.success) {
         toast.success(response.data.message);
-        setSlotTime(""); // Reset selected time
+        setSlotTime("");
 
+        // Update local state to reflect the new booking
         const updatedSlotsBooked = {
           ...docInfo.slots_booked,
-          [bookedDate]: docInfo.slots_booked[bookedDate]
-            ? [...docInfo.slots_booked[bookedDate], slotTime.toLowerCase()]
+          [selectedSlot.date]: docInfo.slots_booked[selectedSlot.date]
+            ? [...docInfo.slots_booked[selectedSlot.date], slotTime.toLowerCase()]
             : [slotTime.toLowerCase()],
         };
+
         setDocInfo((prevDocInfo) => ({
           ...prevDocInfo,
           slots_booked: updatedSlotsBooked,
         }));
 
         await getAvailableSlots(); // Refresh slots with updated availability
-        navigate("/my-appointment"); // Navigate to my-appointment
+        navigate("/my-appointment");
       } else {
         toast.error(response.data.message);
       }
@@ -126,12 +136,21 @@ const Appointment = () => {
   }, [doctors, docId]);
 
   useEffect(() => {
-    getAvailableSlots();
+    if (docInfo) {
+      getAvailableSlots();
+    }
   }, [docInfo]);
 
+  // Refresh slots every 30 seconds to keep them updated
   useEffect(() => {
-    console.log(docSlots);
-  }, [docSlots]);
+    const intervalId = setInterval(() => {
+      if (docInfo) {
+        getAvailableSlots();
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [docInfo]);
 
   return (
     docInfo && (
@@ -222,44 +241,54 @@ const Appointment = () => {
                   <label
                     key={index}
                     htmlFor={`timeslot-${index}`}
-                    className="cursor-pointer min-w-[80px] text-sm font-semibold shadow-sm whitespace-nowrap
-                      border border-blue-300 rounded-xl
+                    className={`cursor-pointer min-w-[80px] text-sm font-semibold shadow-sm whitespace-nowrap
+                      border rounded-xl
                       flex justify-center items-center
                       transition duration-300 ease-in-out
-                      hover:bg-blue-100 hover:text-blue-900"
+                      ${item.isBooked 
+                        ? 'border-red-300 bg-red-50 cursor-not-allowed' 
+                        : 'border-blue-300 hover:bg-blue-100 hover:text-blue-900'
+                      }`}
                   >
                     <input
                       type="radio"
                       id={`timeslot-${index}`}
                       name="timeslot"
                       className="hidden peer"
-                      onChange={() => setSlotTime(item.time)}
+                      onChange={() => !item.isBooked && setSlotTime(item.time)}
+                      disabled={item.isBooked}
                     />
                     <span
                       className={`
                         block w-full px-4 py-2 rounded-xl
-                        text-blue-700
-                        ${
-                          slotTime === item.time
-                            ? "bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300"
-                            : "peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-300"
+                        ${item.isBooked 
+                          ? 'text-red-500' 
+                          : slotTime === item.time
+                            ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300'
+                            : 'text-blue-700'
                         }
                         transition-colors duration-300
                       `}
                     >
-                      {item.time.toLowerCase()}
+                      <div>{item.time.toLowerCase()}</div>
+                      {item.isBooked && (
+                        <div className="text-xs font-medium text-red-600 mt-1">Booked</div>
+                      )}
                     </span>
                   </label>
                 ))}
             </div>
-            <div className="flex justify-center">
+            <div className="text-center mt-6">
               <button
                 onClick={handleBookAppointment}
-                
-
-                className="bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-bold
-                  shadow-md hover:bg-blue-700 active:bg-blue-800
-                  transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400"
+                disabled={!slotTime}
+                className={`px-6 py-3 rounded-xl text-base font-bold
+                  shadow-md transition duration-300 ease-in-out 
+                  focus:outline-none focus:ring-2 focus:ring-blue-400
+                  ${!slotTime 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                  } text-white`}
               >
                 Book an Appointment
               </button>

@@ -210,23 +210,19 @@ const cancelAppointmentAdmin = async (req, res) => {
             });
         }
 
-        // Find and update the appointment to mark as cancelled
-        const appointment = await appointmentModel.findByIdAndUpdate(
-            appointmentId,
-            { 
-                cancelled: true,
-                // Remove user-facing fields but keep the record for admin
-                showToUser: false 
-            },
-            { new: true }
-        );
-
+        // Find the appointment first to get its details
+        const appointment = await appointmentModel.findById(appointmentId);
         if (!appointment) {
             return res.status(404).json({
                 success: false,
                 message: "Appointment not found"
             });
         }
+
+        // Update the appointment status
+        appointment.cancelled = true;
+        appointment.showToUser = false;
+        await appointment.save();
 
         // Remove the booked slot from doctor's schedule
         if (appointment.docId && appointment.slotDate && appointment.slotTime) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createContext } from "react";
 import axios from 'axios'
 import { toast } from "react-toastify";
@@ -24,7 +24,6 @@ const AdminContextProvider = (props) => {
             const { data } = await axios.post(backendUrl + '/api/admin/all-doctors', {}, { headers: { aToken } })
             if (data.success) {
                 setDoctors(data.doctors)
-                console.log(data.doctors)
             } else {
                 toast.error(data.message)
             }
@@ -50,18 +49,12 @@ const AdminContextProvider = (props) => {
     const getAllAppointments = async () => {
         try {
             setLoading(true)
-            console.log('Fetching appointments with token:', aToken)
             const { data } = await axios.get(
                 `${backendUrl}/api/admin/appointments`,
-                { 
-                    headers: { 
-                        aToken
-                    }
-                }
+                { headers: { aToken } }
             )
             if (data.success) {
                 setAppointments(data.appointments)
-                console.log('Appointments fetched:', data.appointments)
             } else {
                 toast.error(data.message)
             }
@@ -81,12 +74,16 @@ const AdminContextProvider = (props) => {
                 { headers: { aToken } }
             )
             if (data.success) {
-                // Update the appointment in the local state to show as cancelled
+                // Update the appointment in the local state
                 setAppointments(prev => prev.map(app => 
                     app._id === appointmentId 
                         ? { ...app, cancelled: true, showToUser: false }
                         : app
                 ));
+                
+                // Refresh doctors list to update slots
+                await getAllDoctors();
+                
                 toast.success('Appointment cancelled successfully');
                 return true;
             } else {
@@ -141,6 +138,15 @@ const AdminContextProvider = (props) => {
             setLoading(false);
         }
     };
+
+    // Initial data load
+    useEffect(() => {
+        if (aToken) {
+            getAllDoctors();
+            getAllAppointments();
+            getDashboardStats();
+        }
+    }, [aToken]);
 
     const value = {
         aToken,
