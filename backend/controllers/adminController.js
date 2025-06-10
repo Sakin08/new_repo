@@ -250,4 +250,38 @@ const cancelAppointmentAdmin = async (req, res) => {
     }
 };
 
-export { addDoctor, loginAdmin, allDoctors, appointmentAdmin, cancelAppointmentAdmin };
+const deleteAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+
+        if (!appointmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "Appointment ID is required"
+            });
+        }
+
+        // Find and delete the appointment
+        const deletedAppointment = await appointmentModel.findByIdAndDelete(appointmentId);
+
+        if (!deletedAppointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment deleted successfully"
+        });
+    } catch (error) {
+        console.error('Error in deleteAppointment:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete appointment"
+        });
+    }
+};
+
+export { addDoctor, loginAdmin, allDoctors, appointmentAdmin, cancelAppointmentAdmin, deleteAppointment };

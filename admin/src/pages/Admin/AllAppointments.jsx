@@ -3,7 +3,7 @@ import { AdminContext } from '../../context/AdminContext';
 import { toast } from 'react-toastify';
 
 const AllAppointments = () => {
-  const { appointments, getAllAppointments, loading, cancelAppointment } = useContext(AdminContext);
+  const { appointments, getAllAppointments, loading, cancelAppointment, deleteAppointment } = useContext(AdminContext);
 
   useEffect(() => {
     getAllAppointments();
@@ -28,6 +28,13 @@ const AllAppointments = () => {
     }
   };
 
+  const handleDelete = async (appointmentId) => {
+    if (window.confirm('Are you sure you want to permanently delete this appointment? This action cannot be undone.')) {
+      await deleteAppointment(appointmentId);
+      // No need to call getAllAppointments as we're updating the state directly in deleteAppointment
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -45,7 +52,7 @@ const AllAppointments = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Details</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Details</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
@@ -60,7 +67,7 @@ const AllAppointments = () => {
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <img 
-                        className="h-10 w-10 rounded-full object-cover" 
+                        className="h-10 w-10 rounded-full object-cover border-2 border-gray-200" 
                         src={appointment.userData?.image || 'https://via.placeholder.com/40'} 
                         alt={appointment.userData?.name || 'Patient'} 
                       />
@@ -81,8 +88,26 @@ const AllAppointments = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{appointment.docData.name}</div>
-                  <div className="text-sm text-gray-500">{appointment.docData.speciality}</div>
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
+                      <img 
+                        className="h-10 w-10 rounded-full object-cover border-2 border-blue-200" 
+                        src={appointment.docData.image || 'https://via.placeholder.com/40'} 
+                        alt={appointment.docData.name} 
+                      />
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        Dr. {appointment.docData.name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {appointment.docData.speciality}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {appointment.docData.experience || 'Experience not specified'}
+                      </div>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{appointment.slotDate}</div>
@@ -112,15 +137,25 @@ const AllAppointments = () => {
                     </span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {!appointment.cancelled && !appointment.isCompleted && (
-                    <button
-                      onClick={() => handleCancel(appointment._id)}
-                      className="text-red-600 hover:text-red-900 font-medium"
-                    >
-                      Cancel
-                    </button>
-                  )}
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                  <div className="flex flex-col space-y-2">
+                    {!appointment.cancelled && !appointment.isCompleted && (
+                      <button
+                        onClick={() => handleCancel(appointment._id)}
+                        className="text-yellow-600 hover:text-yellow-900 font-medium"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    {appointment.cancelled && (
+                      <button
+                        onClick={() => handleDelete(appointment._id)}
+                        className="text-red-600 hover:text-red-900 font-medium"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

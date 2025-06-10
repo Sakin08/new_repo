@@ -86,6 +86,30 @@ const AdminContextProvider = (props) => {
         }
     }
 
+    const deleteAppointment = async (appointmentId) => {
+        try {
+            const { data } = await axios.delete(
+                `${backendUrl}/api/admin/delete-appointment`,
+                { 
+                    headers: { aToken },
+                    data: { appointmentId }
+                }
+            )
+            if (data.success) {
+                // Remove the appointment from local state
+                setAppointments(prev => prev.filter(app => app._id !== appointmentId));
+                toast.success('Appointment deleted successfully');
+                return true;
+            } else {
+                toast.error(data.message);
+                return false;
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete appointment');
+            return false;
+        }
+    }
+
     const value = {
         aToken,
         setAToken,
@@ -96,6 +120,7 @@ const AdminContextProvider = (props) => {
         appointments,
         getAllAppointments,
         cancelAppointment,
+        deleteAppointment,
         loading
     };
 
