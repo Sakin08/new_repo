@@ -2,17 +2,23 @@ import doctorModel from "../models/doctorModel.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { v2 as cloudinary } from "cloudinary"
+import appointmentModel from "../models/appointmentModel.js"
+import userModel from "../models/userModel.js"
 
 const changeAvailablity=async(req,res)=>{
     try{
-        const {docId}=req.body
+        const docId = req.doctorId; // Get doctor ID from auth middleware
 
-        const docData=await doctorModel.findById(docId)
-        await doctorModel.findByIdAndUpdate(docId,{available: !docData.available})
-        res.json({success:true,message:'Availability changed'})
+        const docData = await doctorModel.findById(docId);
+        if (!docData) {
+            return res.json({success: false, message: 'Doctor not found'});
+        }
+
+        await doctorModel.findByIdAndUpdate(docId, {available: !docData.available});
+        res.json({success:true, message:'Availability updated successfully'});
     }catch(error){
-        console.log(error)
-        res.json({success:false,message:error.message})
+        console.log(error);
+        res.json({success:false, message:error.message});
     }
 }
 
@@ -139,4 +145,123 @@ const updateDoctorProfile = async (req, res) => {
     }
 };
 
-export {changeAvailablity,doctorList,loginDoctor, getDoctorProfile, updateDoctorProfile}
+const getDoctorAppointments = async (req, res) => {
+    try {
+        const docId = req.doctorId;
+        const appointments = await appointmentModel.find({ docId })
+            .sort({ date: -1 })
+            .lean();
+
+        // Fetch user details for each appointment
+        const appointmentsWithUserDetails = await Promise.all(
+            appointments.map(async (appointment) => {
+                const user = await userModel.findById(appointment.userId)
+                    .select('name dob')
+                    .lean();
+
+                // Calculate age
+                let age = null;
+                if (user?.dob) {
+                    const birthDate = new Date(user.dob);
+                    const today = new Date();
+                    age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                }
+
+                return {
+                    _id: appointment._id,
+                    patientName: user?.name || 'Unknown',
+                    age: age || 'N/A',
+                    date: appointment.slotDate,
+                    time: appointment.slotTime,
+                    fees: appointment.amount,
+                    paymentMode: appointment.payment ? 'Online' : 'Cash',
+                    status: appointment.cancelled ? 'cancelled' : appointment.isCompleted ? 'completed' : 'pending'
+                };
+            })
+        );
+
+        res.json({ success: true, appointments: appointmentsWithUserDetails });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+const cancelDoctorAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+        const docId = req.doctorId;
+
+        const appointment = await appointmentModel.findOne({
+            _id: appointmentId,
+            docId
+        });
+
+        if (!appointment) {
+            return res.json({ success: false, message: 'Appointment not found' });
+        }
+
+        appointment.cancelled = true;
+        await appointment.save();
+
+        // Remove the booked slot from doctor's schedule
+        const doctor = await doctorModel.findById(docId);
+        if (doctor && doctor.slots_booked && doctor.slots_booked[appointment.slotDate]) {
+            doctor.slots_booked[appointment.slotDate] = doctor.slots_booked[appointment.slotDate]
+                .filter(time => time !== appointment.slotTime);
+            
+            if (doctor.slots_booked[appointment.slotDate].length === 0) {
+                delete doctor.slots_booked[appointment.slotDate];
+            }
+            
+            doctor.markModified('slots_booked');
+            await doctor.save();
+        }
+
+        res.json({ success: true, message: 'Appointment cancelled successfully' });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+const deleteDoctorAppointment = async (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+        const docId = req.doctorId;
+
+        const appointment = await appointmentModel.findOne({
+            _id: appointmentId,
+            docId,
+            $or: [{ cancelled: true }, { isCompleted: true }]
+        });
+
+        if (!appointment) {
+            return res.json({ 
+                success: false, 
+                message: 'Appointment not found or cannot be deleted (must be cancelled or completed)' 
+            });
+        }
+
+        await appointmentModel.deleteOne({ _id: appointmentId });
+        res.json({ success: true, message: 'Appointment deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+export {
+    changeAvailablity,
+    doctorList,
+    loginDoctor,
+    getDoctorProfile,
+    updateDoctorProfile,
+    getDoctorAppointments,
+    cancelDoctorAppointment,
+    deleteDoctorAppointment
+}

@@ -27,15 +27,15 @@ const DoctorProfile = () => {
   useEffect(() => {
     if (doctorInfo) {
       setEditForm({
-        name: doctorInfo.name,
-        speciality: doctorInfo.speciality,
-        degree: doctorInfo.degree,
-        experience: doctorInfo.experience,
-        fees: doctorInfo.fees,
-        about: doctorInfo.about,
+        name: doctorInfo.name || '',
+        speciality: doctorInfo.speciality || '',
+        degree: doctorInfo.degree || '',
+        experience: doctorInfo.experience || '',
+        fees: doctorInfo.fees || '',
+        about: doctorInfo.about || '',
         address: {
-          line1: doctorInfo.address.line1,
-          line2: doctorInfo.address.line2
+          line1: doctorInfo.address?.line1 || '',
+          line2: doctorInfo.address?.line2 || ''
         }
       });
       setImagePreview(doctorInfo.image);
@@ -57,6 +57,30 @@ const DoctorProfile = () => {
       toast.error('Error fetching doctor profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvailabilityChange = async () => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/doctor/toggle-availability`,
+        {},
+        {
+          headers: { dtoken: dToken }
+        }
+      );
+      if (data.success) {
+        setDoctorInfo(prev => ({
+          ...prev,
+          available: !prev.available
+        }));
+        toast.success('Availability updated successfully');
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Error updating availability');
     }
   };
 
@@ -176,6 +200,16 @@ const DoctorProfile = () => {
                 alt={doctorInfo.name}
                 className="w-32 h-32 rounded-full object-cover shadow-md"
               />
+              <div className="mt-4 flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="available"
+                  checked={doctorInfo.available}
+                  onChange={handleAvailabilityChange}
+                  className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                />
+                <label htmlFor="available" className="text-gray-700 cursor-pointer">Available for Appointments</label>
+              </div>
             </div>
 
             {/* Doctor Info Section */}
@@ -215,8 +249,8 @@ const DoctorProfile = () => {
 
                 <div>
                   <p className="mb-1 font-medium text-gray-700">Address</p>
-                  <p className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 mb-2">{doctorInfo.address.line1}</p>
-                  <p className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50">{doctorInfo.address.line2}</p>
+                  <p className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 mb-2">{doctorInfo.address?.line1}</p>
+                  <p className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50">{doctorInfo.address?.line2}</p>
                 </div>
               </div>
             </div>
@@ -273,7 +307,6 @@ const DoctorProfile = () => {
                     value={editForm.name}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
                   />
                 </div>
 
@@ -311,7 +344,6 @@ const DoctorProfile = () => {
                     value={editForm.fees}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
                   />
                 </div>
               </div>
@@ -324,7 +356,6 @@ const DoctorProfile = () => {
                     value={editForm.speciality}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
                   >
                     <option value="General physician">General physician</option>
                     <option value="Gynecologist">Gynecologist</option>
@@ -343,7 +374,6 @@ const DoctorProfile = () => {
                     value={editForm.degree}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
                   />
                 </div>
 
@@ -356,7 +386,6 @@ const DoctorProfile = () => {
                     onChange={handleInputChange}
                     placeholder="Address Line 1"
                     className="w-full mb-2 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
                   />
                   <input
                     type="text"
@@ -365,7 +394,6 @@ const DoctorProfile = () => {
                     onChange={handleInputChange}
                     placeholder="Address Line 2"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
                   />
                 </div>
               </div>
@@ -378,9 +406,9 @@ const DoctorProfile = () => {
                 name="about"
                 value={editForm.about}
                 onChange={handleInputChange}
+                placeholder="Write about yourself..."
                 rows={5}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
               />
             </div>
 
