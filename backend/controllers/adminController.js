@@ -227,16 +227,26 @@ const cancelAppointmentAdmin = async (req, res) => {
         // Remove the booked slot from doctor's schedule
         if (appointment.docId && appointment.slotDate && appointment.slotTime) {
             const doctor = await doctorModel.findById(appointment.docId);
-            if (doctor && doctor.slots_booked && doctor.slots_booked[appointment.slotDate]) {
-                // Remove the time slot from the array
-                doctor.slots_booked[appointment.slotDate] = doctor.slots_booked[appointment.slotDate]
-                    .filter(time => time !== appointment.slotTime);
-                
-                // If no more slots for that date, remove the date entry
-                if (doctor.slots_booked[appointment.slotDate].length === 0) {
-                    delete doctor.slots_booked[appointment.slotDate];
+            if (doctor) {
+                // Initialize slots_booked if it doesn't exist
+                if (!doctor.slots_booked) {
+                    doctor.slots_booked = {};
+                }
+
+                // Check if the date exists and has the slot
+                if (doctor.slots_booked[appointment.slotDate]) {
+                    // Remove the time slot from the array
+                    doctor.slots_booked[appointment.slotDate] = doctor.slots_booked[appointment.slotDate]
+                        .filter(time => time.toLowerCase() !== appointment.slotTime.toLowerCase());
+                    
+                    // If no more slots for that date, remove the date entry
+                    if (doctor.slots_booked[appointment.slotDate].length === 0) {
+                        delete doctor.slots_booked[appointment.slotDate];
+                    }
                 }
                 
+                // Mark as modified to ensure save triggers
+                doctor.markModified('slots_booked');
                 await doctor.save();
             }
         }

@@ -80,9 +80,21 @@ const AdminContextProvider = (props) => {
                         ? { ...app, cancelled: true, showToUser: false }
                         : app
                 ));
-                
-                // Refresh doctors list to update slots
-                await getAllDoctors();
+
+                // Get the cancelled appointment's doctor ID
+                const cancelledApp = appointments.find(app => app._id === appointmentId);
+                if (cancelledApp) {
+                    // Update the specific doctor's data
+                    const { data: doctorData } = await axios.post(
+                        backendUrl + '/api/admin/all-doctors',
+                        {},
+                        { headers: { aToken } }
+                    );
+                    
+                    if (doctorData.success) {
+                        setDoctors(doctorData.doctors);
+                    }
+                }
                 
                 toast.success('Appointment cancelled successfully');
                 return true;
@@ -108,6 +120,10 @@ const AdminContextProvider = (props) => {
             if (data.success) {
                 // Remove the appointment from local state
                 setAppointments(prev => prev.filter(app => app._id !== appointmentId));
+                
+                // Refresh doctors list to ensure slot availability is up to date
+                await getAllDoctors();
+                
                 toast.success('Appointment deleted successfully');
                 return true;
             } else {
