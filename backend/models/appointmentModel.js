@@ -40,6 +40,10 @@ const appointmentSchema = new mongoose.Schema({
     isCompleted: {
         type: Boolean,
         default: false
+    },
+    showToUser: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true

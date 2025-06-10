@@ -74,15 +74,21 @@ const AdminContextProvider = (props) => {
                 { headers: { aToken } }
             )
             if (data.success) {
-                toast.success('Appointment cancelled successfully')
-                return true
+                // Update the appointment in the local state to show as cancelled
+                setAppointments(prev => prev.map(app => 
+                    app._id === appointmentId 
+                        ? { ...app, cancelled: true, showToUser: false }
+                        : app
+                ));
+                toast.success('Appointment cancelled successfully');
+                return true;
             } else {
-                toast.error(data.message)
-                return false
+                toast.error(data.message);
+                return false;
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to cancel appointment')
-            return false
+            toast.error(error.response?.data?.message || 'Failed to cancel appointment');
+            return false;
         }
     }
 

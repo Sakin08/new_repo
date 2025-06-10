@@ -172,8 +172,15 @@ const listAppointment = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ success: false, message: "User ID not found in request" });
     }
-    console.log("Fetching appointments for userId:", userId);
-    const appointments = await appointmentModel.find({ userId }).lean();
+    
+    // Only fetch appointments that should be shown to the user
+    const appointments = await appointmentModel.find({ 
+      userId,
+      showToUser: true  // Only show appointments that haven't been cancelled by admin
+    })
+    .sort({ createdAt: -1 })
+    .lean();
+
     res.json({ success: true, appointments });
   } catch (error) {
     console.error("Error in listAppointment:", error);

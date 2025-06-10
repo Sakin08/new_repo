@@ -210,8 +210,17 @@ const cancelAppointmentAdmin = async (req, res) => {
             });
         }
 
-        const appointment = await appointmentModel.findById(appointmentId);
-        
+        // Find and update the appointment to mark as cancelled
+        const appointment = await appointmentModel.findByIdAndUpdate(
+            appointmentId,
+            { 
+                cancelled: true,
+                // Remove user-facing fields but keep the record for admin
+                showToUser: false 
+            },
+            { new: true }
+        );
+
         if (!appointment) {
             return res.status(404).json({
                 success: false,
@@ -219,27 +228,27 @@ const cancelAppointmentAdmin = async (req, res) => {
             });
         }
 
-        if (appointment.cancelled) {
-            return res.status(400).json({
-                success: false,
-                message: "Appointment is already cancelled"
-            });
+        // Remove the booked slot from doctor's schedule
+        if (appointment.docId && appointment.slotDate && appointment.slotTime) {
+            const doctor = await doctorModel.findById(appointment.docId);
+            if (doctor && doctor.slots_booked && doctor.slots_booked[appointment.slotDate]) {
+                // Remove the time slot from the array
+                doctor.slots_booked[appointment.slotDate] = doctor.slots_booked[appointment.slotDate]
+                    .filter(time => time !== appointment.slotTime);
+                
+                // If no more slots for that date, remove the date entry
+                if (doctor.slots_booked[appointment.slotDate].length === 0) {
+                    delete doctor.slots_booked[appointment.slotDate];
+                }
+                
+                await doctor.save();
+            }
         }
-
-        if (appointment.isCompleted) {
-            return res.status(400).json({
-                success: false,
-                message: "Cannot cancel completed appointment"
-            });
-        }
-
-        // Update the appointment
-        appointment.cancelled = true;
-        await appointment.save();
 
         return res.status(200).json({
             success: true,
-            message: "Appointment cancelled successfully"
+            message: "Appointment cancelled successfully",
+            appointment
         });
     } catch (error) {
         console.error('Error in cancelAppointmentAdmin:', error);
