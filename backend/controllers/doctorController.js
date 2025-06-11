@@ -291,6 +291,104 @@ const completeAppointment = async (req, res) => {
     }
 };
 
+const getDoctorDashboardStats = async (req, res) => {
+    try {
+        const docId = req.doctorId;
+
+        // Get total appointments for this doctor
+        const totalAppointments = await appointmentModel.countDocuments({ docId });
+
+        // Get completed appointments count
+        const completedAppointments = await appointmentModel.countDocuments({ 
+            docId, 
+            isCompleted: true 
+        });
+
+        // Get cancelled appointments count
+        const cancelledAppointments = await appointmentModel.countDocuments({ 
+            docId, 
+            cancelled: true 
+        });
+
+        // Get pending appointments count
+        const pendingAppointments = await appointmentModel.countDocuments({ 
+            docId, 
+            isCompleted: false, 
+            cancelled: false 
+        });
+
+        // Get today's appointments
+        const today = new Date();
+        const todayStr = `${today.getDate()}_${today.getMonth() + 1}_${today.getFullYear()}`;
+        const todayAppointments = await appointmentModel.find({ 
+            docId,
+            slotDate: todayStr,
+            cancelled: false,
+            isCompleted: false
+        }).sort({ slotTime: 1 }).lean();
+
+        // Get recent appointments
+        const recentAppointments = await appointmentModel
+            .find({ docId })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean();
+
+        // Fetch user details for appointments
+        const appointmentsWithUserDetails = await Promise.all(
+            [...todayAppointments, ...recentAppointments].map(async (appointment) => {
+                const user = await userModel.findById(appointment.userId)
+                    .select('name dob image email phone')
+                    .lean();
+
+                // Calculate age
+                let age = null;
+                if (user?.dob) {
+                    const birthDate = new Date(user.dob);
+                    const today = new Date();
+                    age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                }
+
+                return {
+                    _id: appointment._id,
+                    patientName: user?.name || 'Unknown',
+                    age: age || 'N/A',
+                    date: appointment.slotDate,
+                    time: appointment.slotTime,
+                    fees: appointment.amount,
+                    paymentMode: appointment.payment ? 'Online' : 'Cash',
+                    status: appointment.cancelled ? 'cancelled' : appointment.isCompleted ? 'completed' : 'pending',
+                    userData: {
+                        name: user?.name,
+                        email: user?.email,
+                        phone: user?.phone,
+                        image: user?.image,
+                        age: age
+                    }
+                };
+            })
+        );
+
+        const stats = {
+            totalAppointments,
+            completedAppointments,
+            cancelledAppointments,
+            pendingAppointments,
+            todayAppointments: appointmentsWithUserDetails.slice(0, todayAppointments.length),
+            recentAppointments: appointmentsWithUserDetails.slice(todayAppointments.length)
+        };
+
+        res.json({ success: true, stats });
+    } catch (error) {
+        console.error('Error in getDoctorDashboardStats:', error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
 export {
     changeAvailablity,
     doctorList,
@@ -300,5 +398,6 @@ export {
     getDoctorAppointments,
     cancelDoctorAppointment,
     deleteDoctorAppointment,
-    completeAppointment
+    completeAppointment,
+    getDoctorDashboardStats
 }
