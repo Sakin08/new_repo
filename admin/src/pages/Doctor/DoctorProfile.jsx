@@ -63,7 +63,7 @@ const DoctorProfile = () => {
   const handleAvailabilityChange = async () => {
     try {
       const { data } = await axios.put(
-        `${backendUrl}/api/doctor/toggle-availability`,
+        `${backendUrl}/api/doctor/change-availability`,
         {},
         {
           headers: { dtoken: dToken }
