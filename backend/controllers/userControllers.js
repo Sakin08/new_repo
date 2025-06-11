@@ -173,7 +173,7 @@ const listAppointment = async (req, res) => {
       return res.status(400).json({ success: false, message: "User ID not found in request" });
     }
     
-    // Only fetch appointments that should be shown to the user
+    // Fetch appointments that should be shown to the user
     const appointments = await appointmentModel.find({ 
       userId,
       showToUser: true  // Only show appointments that haven't been cancelled by admin
@@ -181,7 +181,13 @@ const listAppointment = async (req, res) => {
     .sort({ createdAt: -1 }) // Sort by creation time, newest first
     .lean();
 
-    res.json({ success: true, appointments });
+    // Transform appointments to include status
+    const transformedAppointments = appointments.map(appointment => ({
+      ...appointment,
+      status: appointment.cancelled ? 'cancelled' : appointment.isCompleted ? 'completed' : 'pending'
+    }));
+
+    res.json({ success: true, appointments: transformedAppointments });
   } catch (error) {
     console.error("Error in listAppointment:", error);
     res.status(500).json({ success: false, message: "Failed to fetch appointments: " + error.message });

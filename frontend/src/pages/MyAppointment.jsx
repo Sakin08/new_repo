@@ -15,12 +15,7 @@ const MyAppointment = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.success) {
-        // Filter out cancelled appointments
-        const activeAppointments = data.appointments.filter(
-          appointment => !appointment.cancelled && appointment.status !== 'cancelled'
-        );
-        setAppointments(activeAppointments);
-        console.log("Active appointments:", activeAppointments);
+        setAppointments(data.appointments);
       } else {
         toast.error(data.message || "Failed to fetch appointments");
         setAppointments([]);
@@ -84,7 +79,7 @@ const MyAppointment = () => {
   useEffect(() => {
     if (token) {
       getUserAppointments();
-      // Refresh appointments every 30 seconds to check for doctor cancellations
+      // Refresh appointments every 30 seconds to check for doctor updates
       const interval = setInterval(getUserAppointments, 30000);
       return () => clearInterval(interval);
     } else {
@@ -126,6 +121,8 @@ const MyAppointment = () => {
                     className={`w-full h-full object-cover rounded-full border-4 ${
                       item.status === 'cancelled' 
                         ? 'border-gray-300 filter grayscale' 
+                        : item.status === 'completed'
+                        ? 'border-green-200 hover:border-green-400'
                         : 'border-blue-200 hover:border-indigo-400'
                     } transition duration-300`}
                   />
@@ -158,21 +155,28 @@ const MyAppointment = () => {
                       This appointment has been cancelled
                     </div>
                   )}
+                  {item.status === 'completed' && (
+                    <div className="mt-4 text-green-600 text-sm font-medium">
+                      Appointment completed successfully
+                    </div>
+                  )}
                 </div>
 
                 {/* Buttons */}
                 <div className="flex flex-col gap-2">
-                  {!item.payment && (
+                  {!item.payment && item.status === 'pending' && (
                     <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer">
                       Pay Online
                     </button>
                   )}
-                  <button
-                    onClick={() => handleCancelAppointment(item._id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
+                  {item.status === 'pending' && (
+                    <button
+                      onClick={() => handleCancelAppointment(item._id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </div>
               </div>
             ))
