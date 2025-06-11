@@ -156,7 +156,7 @@ const getDoctorAppointments = async (req, res) => {
         const appointmentsWithUserDetails = await Promise.all(
             appointments.map(async (appointment) => {
                 const user = await userModel.findById(appointment.userId)
-                    .select('name dob')
+                    .select('name dob image email phone')
                     .lean();
 
                 // Calculate age
@@ -179,7 +179,14 @@ const getDoctorAppointments = async (req, res) => {
                     time: appointment.slotTime,
                     fees: appointment.amount,
                     paymentMode: appointment.payment ? 'Online' : 'Cash',
-                    status: appointment.cancelled ? 'cancelled' : appointment.isCompleted ? 'completed' : 'pending'
+                    status: appointment.cancelled ? 'cancelled' : appointment.isCompleted ? 'completed' : 'pending',
+                    userData: {
+                        name: user?.name,
+                        email: user?.email,
+                        phone: user?.phone,
+                        image: user?.image,
+                        age: age
+                    }
                 };
             })
         );
