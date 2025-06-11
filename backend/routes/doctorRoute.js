@@ -7,7 +7,8 @@ import {
     changeAvailablity,
     getDoctorAppointments,
     cancelDoctorAppointment,
-    deleteDoctorAppointment
+    deleteDoctorAppointment,
+    completeAppointment
 } from '../controllers/doctorController.js'
 import { verifyDoctor } from '../middlewares/authDoctor.js'
 import upload from '../middleware/multer.js'
@@ -24,5 +25,6 @@ doctorRouter.put('/toggle-availability', verifyDoctor, changeAvailablity)
 doctorRouter.get('/appointments', verifyDoctor, getDoctorAppointments)
 doctorRouter.put('/cancel-appointment', verifyDoctor, cancelDoctorAppointment)
 doctorRouter.delete('/delete-appointment/:id', verifyDoctor, deleteDoctorAppointment)
+doctorRouter.put('/complete-appointment', verifyDoctor, completeAppointment)
 
 export default doctorRouter

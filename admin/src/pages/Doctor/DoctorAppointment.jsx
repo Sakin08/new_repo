@@ -86,7 +86,7 @@ const DoctorAppointment = () => {
       if (newStatus === 'confirmed') {
         const { data } = await axios.put(
           `${backendUrl}/api/doctor/complete-appointment`,
-          { appointmentId, isCompleted: true },
+          { appointmentId },
           { headers: { dtoken: dToken } }
         );
         

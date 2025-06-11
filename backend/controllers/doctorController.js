@@ -262,6 +262,35 @@ const deleteDoctorAppointment = async (req, res) => {
     }
 };
 
+const completeAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+        const docId = req.doctorId;
+
+        const appointment = await appointmentModel.findOne({
+            _id: appointmentId,
+            docId,
+            cancelled: false,
+            isCompleted: false
+        });
+
+        if (!appointment) {
+            return res.json({ 
+                success: false, 
+                message: 'Appointment not found or cannot be completed' 
+            });
+        }
+
+        appointment.isCompleted = true;
+        await appointment.save();
+
+        res.json({ success: true, message: 'Appointment completed successfully' });
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
 export {
     changeAvailablity,
     doctorList,
@@ -270,5 +299,6 @@ export {
     updateDoctorProfile,
     getDoctorAppointments,
     cancelDoctorAppointment,
-    deleteDoctorAppointment
+    deleteDoctorAppointment,
+    completeAppointment
 }
