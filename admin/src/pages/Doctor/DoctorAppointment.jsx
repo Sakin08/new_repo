@@ -9,6 +9,7 @@ import {
   FaMoneyBillWave,
   FaCreditCard,
   FaSearch,
+  FaSpinner,
 } from 'react-icons/fa';
 
 const DoctorAppointment = () => {
@@ -16,6 +17,7 @@ const DoctorAppointment = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [processingAppointments, setProcessingAppointments] = useState(new Set());
 
   const fetchAppointments = async () => {
     try {
@@ -36,21 +38,89 @@ const DoctorAppointment = () => {
     }
   };
 
-  const handleStatusChange = async (appointmentId, newStatus) => {
-    try {
-      const { data } = await axios.post(
-        `${backendUrl}/api/doctor/update-appointment-status`,
-        { appointmentId, status: newStatus },
-        { headers: { dtoken: dToken } }
+  const handleStatusChange = async (appointmentId, newStatus, patientName) => {
+    if (newStatus === 'cancelled') {
+      // Show confirmation toast
+      toast.warn(
+        <div>
+          <p className="font-medium mb-2">Cancel Appointment?</p>
+          <p className="text-sm mb-4">Are you sure you want to cancel the appointment with {patientName}?</p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => {
+                toast.dismiss(); // Close the confirmation toast
+                processStatusChange(appointmentId, newStatus);
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+            >
+              Yes, Cancel
+            </button>
+            <button
+              onClick={() => toast.dismiss()}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition-colors"
+            >
+              No, Keep
+            </button>
+          </div>
+        </div>,
+        {
+          position: "top-center",
+          autoClose: false,
+          closeOnClick: false,
+          draggable: false,
+          closeButton: false,
+          className: "confirmation-toast"
+        }
       );
-      if (data.success) {
-        toast.success(`Appointment ${newStatus.toLowerCase()} successfully`);
-        fetchAppointments();
-      } else {
-        toast.error(data.message);
+    } else {
+      // For confirmation, proceed directly
+      await processStatusChange(appointmentId, newStatus);
+    }
+  };
+
+  const processStatusChange = async (appointmentId, newStatus) => {
+    try {
+      setProcessingAppointments(prev => new Set([...prev, appointmentId]));
+
+      if (newStatus === 'confirmed') {
+        const { data } = await axios.put(
+          `${backendUrl}/api/doctor/complete-appointment`,
+          { appointmentId, isCompleted: true },
+          { headers: { dtoken: dToken } }
+        );
+        
+        if (data.success) {
+          toast.success('Appointment confirmed successfully');
+          await fetchAppointments();
+        } else {
+          toast.error(data.message || 'Failed to confirm appointment');
+        }
+      } else if (newStatus === 'cancelled') {
+        const { data } = await axios.put(
+          `${backendUrl}/api/doctor/cancel-appointment`,
+          { appointmentId },
+          { headers: { dtoken: dToken } }
+        );
+
+        if (data.success) {
+          toast.success('Appointment cancelled successfully');
+          await fetchAppointments();
+        } else {
+          toast.error(data.message || 'Failed to cancel appointment');
+        }
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update appointment status');
+      console.error('Error updating appointment:', error);
+      toast.error(
+        error.response?.data?.message || 
+        'Failed to update appointment status. Please try again.'
+      );
+    } finally {
+      setProcessingAppointments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(appointmentId);
+        return newSet;
+      });
     }
   };
 
@@ -202,7 +272,7 @@ const DoctorAppointment = () => {
                       <div className="text-sm text-gray-900">
                         <div className="flex items-center mb-1">
                           <FaMoneyBillWave className="mr-2 text-blue-500" />
-                          ₹{appointment.fees}
+                          Tk {appointment.fees}
                         </div>
                         <div className="flex items-center">
                           <FaCreditCard className="mr-2 text-blue-500" />
@@ -223,16 +293,40 @@ const DoctorAppointment = () => {
                       {appointment.status === 'pending' && (
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleStatusChange(appointment._id, 'confirmed')}
-                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg transition-colors duration-200"
+                            onClick={() => handleStatusChange(appointment._id, 'confirmed', appointment.patientName)}
+                            disabled={processingAppointments.has(appointment._id)}
+                            className={`flex items-center justify-center px-3 py-1 rounded-lg transition-colors duration-200 ${
+                              processingAppointments.has(appointment._id)
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-green-500 hover:bg-green-600'
+                            } text-white`}
                           >
-                            Confirm
+                            {processingAppointments.has(appointment._id) ? (
+                              <>
+                                <FaSpinner className="animate-spin mr-2" />
+                                Processing...
+                              </>
+                            ) : (
+                              'Confirm'
+                            )}
                           </button>
                           <button
-                            onClick={() => handleStatusChange(appointment._id, 'cancelled')}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors duration-200"
+                            onClick={() => handleStatusChange(appointment._id, 'cancelled', appointment.patientName)}
+                            disabled={processingAppointments.has(appointment._id)}
+                            className={`flex items-center justify-center px-3 py-1 rounded-lg transition-colors duration-200 ${
+                              processingAppointments.has(appointment._id)
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-red-500 hover:bg-red-600'
+                            } text-white`}
                           >
-                            Cancel
+                            {processingAppointments.has(appointment._id) ? (
+                              <>
+                                <FaSpinner className="animate-spin mr-2" />
+                                Processing...
+                              </>
+                            ) : (
+                              'Cancel'
+                            )}
                           </button>
                         </div>
                       )}

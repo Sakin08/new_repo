@@ -15,8 +15,12 @@ const MyAppointment = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.success) {
-        setAppointments(data.appointments);
-        console.log("Appointments fetched:", data.appointments);
+        // Filter out cancelled appointments
+        const activeAppointments = data.appointments.filter(
+          appointment => !appointment.cancelled && appointment.status !== 'cancelled'
+        );
+        setAppointments(activeAppointments);
+        console.log("Active appointments:", activeAppointments);
       } else {
         toast.error(data.message || "Failed to fetch appointments");
         setAppointments([]);
@@ -42,7 +46,8 @@ const MyAppointment = () => {
       );
       if (data.success) {
         toast.success(data.message);
-        await getUserAppointments();
+        // Remove the cancelled appointment immediately from the UI
+        setAppointments(prev => prev.filter(apt => apt._id !== appointmentId));
       } else {
         toast.error(data.message || "Failed to cancel appointment");
       }
@@ -53,9 +58,8 @@ const MyAppointment = () => {
   };
 
   const formatAppointmentDate = (dateString) => {
-    // Convert from "DD_MM_YYYY" to a proper date
     const [day, month, year] = dateString.split('_');
-    const date = new Date(year, month - 1, day); // month is 0-based in JS Date
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       day: 'numeric',
@@ -64,9 +68,25 @@ const MyAppointment = () => {
     });
   };
 
+  const getStatusBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   useEffect(() => {
     if (token) {
       getUserAppointments();
+      // Refresh appointments every 30 seconds to check for doctor cancellations
+      const interval = setInterval(getUserAppointments, 30000);
+      return () => clearInterval(interval);
     } else {
       setAppointments([]);
       setLoading(false);
@@ -80,7 +100,9 @@ const MyAppointment = () => {
       </h2>
 
       {loading ? (
-        <p className="text-center text-gray-500 text-lg">Loading appointments...</p>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-8">
           {appointments.length > 0 ? (
@@ -89,12 +111,23 @@ const MyAppointment = () => {
                 key={index}
                 className="bg-gradient-to-br from-white via-blue-50 to-blue-100 border border-blue-200 rounded-2xl shadow-lg p-6 flex gap-6 items-start transition-all duration-300 hover:shadow-2xl"
               >
+                {/* Status Badge - Top Right */}
+                <div className="absolute top-4 right-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusBadgeClass(item.status)} capitalize`}>
+                    {item.status}
+                  </span>
+                </div>
+
                 {/* Doctor Image */}
                 <div className="w-24 h-24 shrink-0">
                   <img
                     src={item.docData.image}
                     alt={item.docData.name}
-                    className="w-full h-full object-cover rounded-full border-4 border-blue-200 hover:border-indigo-400 transition duration-300"
+                    className={`w-full h-full object-cover rounded-full border-4 ${
+                      item.status === 'cancelled' 
+                        ? 'border-gray-300 filter grayscale' 
+                        : 'border-blue-200 hover:border-indigo-400'
+                    } transition duration-300`}
                   />
                 </div>
 
@@ -120,14 +153,20 @@ const MyAppointment = () => {
                     <span>{item.slotTime}</span>
                   </div>
 
-
+                  {item.status === 'cancelled' && (
+                    <div className="mt-4 text-red-600 text-sm font-medium">
+                      This appointment has been cancelled
+                    </div>
+                  )}
                 </div>
 
                 {/* Buttons */}
                 <div className="flex flex-col gap-2">
-                  <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer">
-                    Pay Online
-                  </button>
+                  {!item.payment && (
+                    <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer">
+                      Pay Online
+                    </button>
+                  )}
                   <button
                     onClick={() => handleCancelAppointment(item._id)}
                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm shadow-md hover:shadow-lg transition duration-300 cursor-pointer"
@@ -138,7 +177,12 @@ const MyAppointment = () => {
               </div>
             ))
           ) : (
-            <p className="text-center text-gray-500 text-lg">No appointments booked yet.</p>
+            <div className="col-span-2 text-center py-12">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <p className="text-gray-500 text-lg">No appointments found</p>
+            </div>
           )}
         </div>
       )}
