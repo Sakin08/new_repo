@@ -52,7 +52,7 @@ A full-stack web application that allows patients to book appointments with doct
 git clone https://github.com/Sakin08/new_repo.git
 cd new_repo
 ```
-###2️⃣ Install Dependencies
+2️⃣ Install Dependencies
 ```bash
 # Backend
 cd backend
@@ -63,7 +63,7 @@ cd ../frontend
 npm install
 
 ```
-###3️⃣ Configure Environment Variables
+3️⃣ Configure Environment Variables
 Create a .env file inside the backend/ directory:
 ```bash
 PORT=5000
@@ -71,7 +71,7 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 ```
 
-###4️⃣ Start Development Servers
+4️⃣ Start Development Servers
 ```bash
 # Start backend
 cd backend
@@ -81,22 +81,28 @@ npm run dev
 cd frontend
 npm run dev
 ```
+<br><br>
+📸 Screenshots
+<br>
 
-#📸 Screenshots
 | Login Page                      | Booking Page                        |
 | ------------------------------- | ----------------------------------- |
 | ![Login](screenshots/login.png) | ![Booking](screenshots/booking.png) |
 
+<br><br>
 
-###🙋‍♂️ Author
-MD. SOHANOOR RAHAMAN SAKIN
-📧 Email: mdsrsakin2001@gmail.com
+🙋‍♂️ Author
+
+MD. SOHANOOR RAHAMAN SAKIN <br>
+📧 Email: mdsrsakin2001@gmail.com<br>
 🔗 GitHub: @Sakin08
+<br><br>
 
-###📄 License
+📄 License
 This project is licensed under the MIT License.
 
-#🇧🇩 বাংলা ভাষায়
+<br><br><br>
+🇧🇩 বাংলা ভাষায়
 এই প্রজেক্টটি রোগী ও ডাক্তারদের মধ্যে অ্যাপয়েন্টমেন্ট ম্যানেজমেন্টকে সহজ করতে ডিজাইন করা হয়েছে। এটি ইউনিভার্সিটি বা প্রফেশনাল প্রোজেক্ট হিসেবে দারুণভাবে উপস্থাপনযোগ্য।
 
 বৈশিষ্ট্য:
