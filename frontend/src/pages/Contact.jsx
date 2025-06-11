@@ -31,13 +31,13 @@ const Contact = () => {
           <div>
             <h3 className="text-xl font-semibold text-blue-600 mb-1">Our Office</h3>
             <p className="text-gray-700">
-              54709 Willms Station<br />
-              Suite 350, Washington, USA
+              House #12, Road #4,<br />
+              Dhanmondi, Dhaka 1205, Bangladesh
             </p>
           </div>
           <div>
-            <p className="text-gray-700"><span className="font-medium">Tel:</span> (415) 555‑0132</p>
-            <p className="text-gray-700"><span className="font-medium">Email:</span> greatstackdev@gmail.com</p>
+            <p className="text-gray-700"><span className="font-medium">Tel:</span> +880 1700-123456</p>
+            <p className="text-gray-700"><span className="font-medium">Email:</span> 2021331008@student.sust.edu</p>
           </div>
           <div>
             <h3 className="text-xl font-semibold text-blue-600 mb-1">Careers at PRESCRIPTO</h3>
