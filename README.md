@@ -85,9 +85,14 @@ npm run dev
 📸 Screenshots
 <br>
 
-| Login Page                      | Booking Page                        |
 | ------------------------------- | ----------------------------------- |
-| ![Login](screenshots/login.png) | ![Booking](screenshots/booking.png) |
+| ![Home](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+| ------------------------------- | ----------------------------------- |
 
 <br><br>
 
