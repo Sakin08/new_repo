@@ -7,7 +7,8 @@ import userModel from "../models/userModel.js"
 
 const changeAvailablity=async(req,res)=>{
     try{
-        const docId = req.doctorId; // Get doctor ID from auth middleware
+        // Get doctor ID from request body (for admin) or from auth middleware (for doctor)
+        const docId = req.body.docId || req.doctorId;
 
         const docData = await doctorModel.findById(docId);
         if (!docData) {
