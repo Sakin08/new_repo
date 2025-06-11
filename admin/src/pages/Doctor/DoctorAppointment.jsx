@@ -10,6 +10,7 @@ import {
   FaCreditCard,
   FaSearch,
   FaSpinner,
+  FaTrash,
 } from 'react-icons/fa';
 
 const DoctorAppointment = () => {
@@ -114,6 +115,71 @@ const DoctorAppointment = () => {
       toast.error(
         error.response?.data?.message || 
         'Failed to update appointment status. Please try again.'
+      );
+    } finally {
+      setProcessingAppointments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(appointmentId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleDelete = async (appointmentId, patientName) => {
+    // Show confirmation toast
+    toast.warn(
+      <div>
+        <p className="font-medium mb-2">Delete Appointment Record?</p>
+        <p className="text-sm mb-4">Are you sure you want to delete the appointment record with {patientName}? This action cannot be undone.</p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => {
+              toast.dismiss();
+              processDelete(appointmentId);
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+          >
+            Yes, Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss()}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition-colors"
+          >
+            No, Keep
+          </button>
+        </div>
+      </div>,
+      {
+        position: "top-center",
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+        closeButton: false,
+        className: "confirmation-toast"
+      }
+    );
+  };
+
+  const processDelete = async (appointmentId) => {
+    try {
+      setProcessingAppointments(prev => new Set([...prev, appointmentId]));
+
+      const { data } = await axios.delete(
+        `${backendUrl}/api/doctor/delete-appointment/${appointmentId}`,
+        { headers: { dtoken: dToken } }
+      );
+
+      if (data.success) {
+        toast.success('Appointment record deleted successfully');
+        setAppointments(prev => prev.filter(app => app._id !== appointmentId));
+      } else {
+        toast.error(data.message || 'Failed to delete appointment record');
+      }
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      toast.error(
+        error.response?.data?.message || 
+        'Failed to delete appointment record. Please try again.'
       );
     } finally {
       setProcessingAppointments(prev => {
@@ -329,6 +395,29 @@ const DoctorAppointment = () => {
                             )}
                           </button>
                         </div>
+                      )}
+                      {appointment.status === 'cancelled' && (
+                        <button
+                          onClick={() => handleDelete(appointment._id, appointment.patientName)}
+                          disabled={processingAppointments.has(appointment._id)}
+                          className={`flex items-center justify-center px-3 py-1 rounded-lg transition-colors duration-200 ${
+                            processingAppointments.has(appointment._id)
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-red-500 hover:bg-red-600'
+                          } text-white`}
+                        >
+                          {processingAppointments.has(appointment._id) ? (
+                            <>
+                              <FaSpinner className="animate-spin mr-2" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <FaTrash className="mr-2" />
+                              Delete
+                            </>
+                          )}
+                        </button>
                       )}
                     </td>
                   </tr>
