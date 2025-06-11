@@ -195,6 +195,22 @@ const Appointment = () => {
                 {docInfo.about}
               </p>
             </section>
+            <section>
+              <div className="flex items-center gap-1 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900">Address</h3>
+                <img
+                  src={assets.location_icon}
+                  alt="Location"
+                  className="w-4 h-4 opacity-80"
+                  title="Doctor's Location"
+                />
+              </div>
+              <div className="text-gray-700 leading-relaxed text-sm">
+                <p className="font-bold">{docInfo.address?.line1}</p>
+                <p className="font-bold">{docInfo.address?.line2}</p>
+                <p className="font-bold">{docInfo.address?.city}, {docInfo.address?.state} {docInfo.address?.pinCode}</p>
+              </div>
+            </section>
             <div className="mt-3 text-sm font-semibold text-gray-900">
               Appointment fee:{" "}
               <span className="text-blue-600">
