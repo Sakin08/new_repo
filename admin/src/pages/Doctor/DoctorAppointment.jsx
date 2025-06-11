@@ -396,7 +396,7 @@ const DoctorAppointment = () => {
                           </button>
                         </div>
                       )}
-                      {appointment.status === 'cancelled' && (
+                      {(appointment.status === 'cancelled' || appointment.status === 'completed') && (
                         <button
                           onClick={() => handleDelete(appointment._id, appointment.patientName)}
                           disabled={processingAppointments.has(appointment._id)}
