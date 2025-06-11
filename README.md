@@ -28,8 +28,8 @@ A full-stack web application that allows patients to book appointments with doct
 ## 🧰 Tech Stack
 
 ### Frontend:
-- React / TypeScript (or JavaScript)
-- Tailwind CSS / Bootstrap for styling
+- React
+- Tailwind CSS 
 - React Router for navigation
 
 ### Backend:
@@ -75,7 +75,7 @@ JWT_SECRET=your_jwt_secret
 ```bash
 # Start backend
 cd backend
-npm run dev
+npm start sercer
 
 # Start frontend (in a separate terminal)
 cd frontend
