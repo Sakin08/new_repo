@@ -1,129 +1,301 @@
-# 🏥 Doctor's Appointment Booking System
+# 🏥 Medicare - Doctor's Appointment Booking System
 
-A full-stack web application that allows patients to book appointments with doctors, and doctors/admins to manage schedules efficiently. This system is designed to simplify appointment booking, improve healthcare workflow, and provide a user-friendly experience for both patients and medical staff.
+A comprehensive full-stack healthcare platform that streamlines appointment booking between patients and healthcare providers. Built with modern web technologies, Medicare offers separate interfaces for patients, doctors, and administrators to manage healthcare appointments efficiently.
 
----
+![Medicare Banner](Prescripto_medicare/1.png)
 
-## 📌 Features
+## ✨ Key Features
 
-### 👨‍⚕️ For Patients:
-- Register and login securely
-- Browse list of available doctors
-- Book appointments by selecting doctor, date, and time
-- View and cancel upcoming appointments
-- Receive booking confirmation
+### 👨‍⚕️ **Patient Portal**
 
-### 🩺 For Doctors:
-- View daily appointment schedules
-- Accept or reject appointments
-- Update availability
+- **Secure Authentication** - Register and login with JWT-based security
+- **Doctor Discovery** - Browse doctors by specialty with detailed profiles
+- **Smart Booking** - Book appointments with real-time availability
+- **Appointment Management** - View, reschedule, or cancel appointments
+- **Payment Integration** - Secure payment processing with SSLCommerz
+- **Profile Management** - Update personal information and medical history
+- **Appointment History** - Track past and upcoming appointments
 
-### 🛠️ For Admin:
-- Add/remove doctors
-- Manage users and appointments
-- View analytics and reports (optional)
+### 🩺 **Doctor Dashboard**
 
----
+- **Schedule Management** - View and manage daily appointment schedules
+- **Appointment Control** - Accept, reject, or reschedule patient requests
+- **Patient Information** - Access patient details and medical history
+- **Availability Settings** - Set working hours and availability
+- **Profile Management** - Update professional information and credentials
 
-## 🧰 Tech Stack
+### 🛠️ **Admin Panel**
 
-### Frontend:
-- React
-- Tailwind CSS 
-- React Router for navigation
+- **Doctor Management** - Add, remove, and manage doctor profiles
+- **User Administration** - Oversee patient and doctor accounts
+- **Appointment Oversight** - Monitor all appointments across the platform
+- **Analytics Dashboard** - View system statistics and reports
+- **Content Management** - Manage specialties, services, and platform content
 
-### Backend:
-- Node.js + Express
-- MongoDB + Mongoose 
-- JWT for authentication
+## 🏗️ Architecture
 
-### Tools & Others:
-- RESTful API
-- Postman (for testing APIs)
-- Git & GitHub for version control
+This project follows a **microservices architecture** with three main applications:
 
----
-
-## 🚀 Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Sakin08/new_repo.git
-cd new_repo
 ```
-2️⃣ Install Dependencies
+medicare/
+├── frontend/          # Patient-facing React application
+├── admin/            # Admin dashboard React application
+├── backend/          # Node.js API server
+└── Prescripto_medicare/ # Screenshots and assets
+```
+
+## 🧰 Technology Stack
+
+### **Frontend Applications**
+
+- **React 19** - Modern UI library with hooks
+- **Vite** - Fast build tool and development server
+- **Tailwind CSS 4** - Utility-first CSS framework
+- **React Router DOM** - Client-side routing
+- **Framer Motion** - Smooth animations and transitions
+- **Axios** - HTTP client for API communication
+- **React Toastify** - User-friendly notifications
+- **Lucide React** - Beautiful icon library
+
+### **Backend Services**
+
+- **Node.js** - JavaScript runtime environment
+- **Express.js** - Web application framework
+- **MongoDB** - NoSQL database with Mongoose ODM
+- **JWT** - JSON Web Tokens for authentication
+- **Bcrypt** - Password hashing and security
+- **Cloudinary** - Image upload and management
+- **Multer** - File upload middleware
+- **SSLCommerz** - Payment gateway integration
+- **Validator** - Data validation utilities
+
+### **Development Tools**
+
+- **ESLint** - Code linting and formatting
+- **Nodemon** - Development server auto-restart
+- **CORS** - Cross-origin resource sharing
+- **dotenv** - Environment variable management
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- MongoDB (local or cloud instance)
+- Cloudinary account (for image uploads)
+- SSLCommerz account (for payments)
+
+### 1. Clone the Repository
+
 ```bash
-# Backend
+git clone https://github.com/Sakin08/Doctors-Appointment-Booking-system.git
+cd Doctors-Appointment-Booking-system
+```
+
+### 2. Backend Setup
+
+```bash
 cd backend
 npm install
+```
 
-# Frontend
+Create `.env` file in the backend directory:
+
+```env
+PORT=4000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+ADMIN_EMAIL=admin@medicare.com
+ADMIN_PASSWORD=your_admin_password
+
+# Cloudinary Configuration
+CLOUDINARY_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_SECRET_KEY=your_secret_key
+
+# SSLCommerz Configuration
+STORE_ID=your_store_id
+STORE_PASSWORD=your_store_password
+IS_LIVE=false
+```
+
+### 3. Frontend Setup
+
+```bash
 cd ../frontend
 npm install
-
-```
-3️⃣ Configure Environment Variables
-Create a .env file inside the backend/ directory:
-```bash
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
 ```
 
-4️⃣ Start Development Servers
+Create `.env` file in the frontend directory:
+
+```env
+VITE_BACKEND_URL=http://localhost:4000
+```
+
+### 4. Admin Panel Setup
+
 ```bash
-# Start backend
+cd ../admin
+npm install
+```
+
+Create `.env` file in the admin directory:
+
+```env
+VITE_BACKEND_URL=http://localhost:4000
+```
+
+### 5. Start Development Servers
+
+**Terminal 1 - Backend:**
+
+```bash
 cd backend
-npm start sercer
+npm run server
+```
 
-# Start frontend (in a separate terminal)
+**Terminal 2 - Frontend:**
+
+```bash
 cd frontend
 npm run dev
 ```
-<br><br>
-📸 Screenshots
-<br>
 
-| ------------------------------- | ----------------------------------- |
+**Terminal 3 - Admin Panel:**
 
-| ------------------------------- | ----------------------------------- |
+```bash
+cd admin
+npm run dev
+```
 
-<br><br>
+### 6. Access the Applications
 
-🙋‍♂️ Author
+- **Patient Portal**: https://medicare-two-rosy.vercel.app/
+- **Admin Dashboard**: https://medicare-admin-doctor-panel.vercel.app/
+- **API Server**: https://medicare-backend-lime.vercel.app/
 
-MD. SOHANOOR RAHAMAN SAKIN <br>
-📧 Email: mdsrsakin2001@gmail.com<br>
-🔗 GitHub: @Sakin08
-<br><br>
+## 📱 Application Screenshots
 
-📄 License
-This project is licensed under the MIT License.
+<div align="center">
 
-<br><br><br>
-🇧🇩 বাংলা ভাষায়
-এই প্রজেক্টটি রোগী ও ডাক্তারদের মধ্যে অ্যাপয়েন্টমেন্ট ম্যানেজমেন্টকে সহজ করতে ডিজাইন করা হয়েছে। এটি ইউনিভার্সিটি বা প্রফেশনাল প্রোজেক্ট হিসেবে দারুণভাবে উপস্থাপনযোগ্য।
+### Patient Portal
 
-বৈশিষ্ট্য:
-রোগীরা অ্যাকাউন্ট তৈরি করে সহজেই ডাক্তারদের সাথে অ্যাপয়েন্টমেন্ট নিতে পারবে।
+| Home Page                          | Doctor Listings                       | Appointment Booking                   |
+| ---------------------------------- | ------------------------------------- | ------------------------------------- |
+| ![Home](Prescripto_medicare/1.png) | ![Doctors](Prescripto_medicare/2.png) | ![Booking](Prescripto_medicare/3.png) |
 
-ডাক্তাররা তাদের ডেইলি শিডিউল ম্যানেজ করতে পারবে।
+### Admin Dashboard
 
-অ্যাডমিন সকল তথ্য নিয়ন্ত্রণ করতে পারবে।
+| Dashboard                                     | Doctor Management                               | Appointments                               |
+| --------------------------------------------- | ----------------------------------------------- | ------------------------------------------ |
+| ![Admin Dashboard](Prescripto_medicare/4.png) | ![Doctor Management](Prescripto_medicare/5.png) | ![Appointments](Prescripto_medicare/6.png) |
 
+### Doctor Portal
 
+| Doctor Dashboard                               | Schedule View                          | Profile Management                    |
+| ---------------------------------------------- | -------------------------------------- | ------------------------------------- |
+| ![Doctor Dashboard](Prescripto_medicare/7.png) | ![Schedule](Prescripto_medicare/8.png) | ![Profile](Prescripto_medicare/9.png) |
 
+</div>
 
+## 🔧 API Endpoints
 
+### Authentication
 
+- `POST /api/user/register` - Patient registration
+- `POST /api/user/login` - Patient login
+- `POST /api/doctor/login` - Doctor login
+- `POST /api/admin/login` - Admin login
 
+### Appointments
 
+- `GET /api/user/appointments` - Get user appointments
+- `POST /api/user/book-appointment` - Book new appointment
+- `POST /api/user/cancel-appointment` - Cancel appointment
+- `GET /api/doctor/appointments` - Get doctor appointments
+- `POST /api/doctor/complete-appointment` - Mark appointment complete
 
+### Doctors
 
+- `GET /api/user/doctors` - Get all doctors
+- `GET /api/user/doctor/:id` - Get doctor details
+- `POST /api/admin/add-doctor` - Add new doctor
+- `GET /api/admin/doctors` - Get all doctors (admin)
 
+### Payments
 
+- `POST /api/payment/sslcommerz` - Process payment
+- `POST /api/payment/success` - Payment success callback
+- `POST /api/payment/fail` - Payment failure callback
 
+## 🌐 Deployment
 
+### Backend (Vercel)
 
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "./server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ]
+}
+```
 
+### Frontend (Vercel)
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**MD. SOHANOOR RAHAMAN SAKIN**
+
+- 📧 Email: mdsrsakin2001@gmail.com
+- 🔗 GitHub: [@Sakin08](https://github.com/Sakin08)
+- 💼 LinkedIn: [Connect with me](https://linkedin.com/in/sakin08)
+
+## 🙏 Acknowledgments
+
+- Thanks to all healthcare professionals who inspired this project
+- Special thanks to the open-source community for the amazing tools
+- Icons provided by [Lucide React](https://lucide.dev/)
+- UI inspiration from modern healthcare platforms
+
+---
+
+<div align="center">
+
+**⭐ Star this repository if you found it helpful!**
+
+Made with ❤️ for better healthcare accessibility
+
+</div>
