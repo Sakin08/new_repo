@@ -86,12 +86,7 @@ npm run dev
 <br>
 
 | ------------------------------- | ----------------------------------- |
-| ![Home](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
-| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
-| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
-| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
-| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
-| ![Login](/Prescripto_medicare/1.png) | ![Booking](screenshots/booking.png) |
+
 | ------------------------------- | ----------------------------------- |
 
 <br><br>
