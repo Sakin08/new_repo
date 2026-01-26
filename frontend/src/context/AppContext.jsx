@@ -59,7 +59,16 @@ const AppContextProvider = (props) => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      // If token is invalid (401), clear it
+      if (error.response && error.response.status === 401) {
+        console.log('Invalid token, clearing...');
+        setToken(false);
+        setUserData(false);
+        localStorage.removeItem('token');
+        toast.error('Session expired. Please login again.');
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 
